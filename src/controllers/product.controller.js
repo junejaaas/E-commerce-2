@@ -30,10 +30,19 @@ const getProduct = catchAsync(async (req, res) => {
     res.send(product);
 });
 
+const updateProduct = catchAsync(async (req, res) => {
+    const product = await productService.updateProductById(req.params.productId, req.body);
+    if (!product) {
+        throw new AppError('Product not found', 404);
+    }
+    res.send(product);
+});
+
 module.exports = {
     createCategory,
     getCategories,
     createProduct,
     getProducts,
     getProduct,
+    updateProduct,
 };

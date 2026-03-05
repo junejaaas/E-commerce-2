@@ -27,6 +27,12 @@ router
 
 router
     .route('/:productId')
-    .get(validate(productValidation.getProduct), productController.getProduct);
+    .get(validate(productValidation.getProduct), productController.getProduct)
+    .patch(
+        authMiddleware.protect,
+        authMiddleware.authorize('admin', 'seller'),
+        validate(productValidation.updateProduct),
+        productController.updateProduct
+    );
 
 module.exports = router;

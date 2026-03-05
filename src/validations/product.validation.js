@@ -26,12 +26,30 @@ const getProducts = {
 
 const getProduct = {
     params: Joi.object().keys({
-        productId: Joi.string().required(), // Validate ObjectId format if possible
+        productId: Joi.string().required(),
     }),
+};
+
+const updateProduct = {
+    params: Joi.object().keys({
+        productId: Joi.string().required(),
+    }),
+    body: Joi.object()
+        .keys({
+            name: Joi.string(),
+            description: Joi.string(),
+            price: Joi.number().min(0),
+            stock: Joi.number().min(0),
+            category: Joi.string(),
+            images: Joi.array().items(Joi.string()),
+            isFeatured: Joi.boolean(),
+        })
+        .min(1),
 };
 
 module.exports = {
     createProduct,
     getProducts,
     getProduct,
+    updateProduct,
 };

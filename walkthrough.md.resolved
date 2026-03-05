@@ -1,0 +1,103 @@
+# E-commerce Backend Project Analysis
+
+This document provides a summary of the work completed so far and a detailed guide for testing the available API routes using Postman.
+
+## Completed Work Summary
+
+The project is a production-grade MERN stack e-commerce backend with a clean architecture (Controllers, Services, Models).
+
+### 1. Core Infrastructure
+- **Framework**: Express.js with Node.js.
+- **Security**: Security headers with `helmet`, CORS enabled, and environment variable management.
+- **Authentication**: JWT-based authentication with Access and Refresh tokens.
+- **Error Handling**: Global error handling middleware with custom `AppError` class.
+- **Validation**: Request validation using middleware (likely Joi or similar).
+- **Logging**: Request logging using `morgan` in development mode.
+
+### 2. Modules Implemented
+- **Authentication**: Full flow including Registration, Login, Logout, and Token Refresh.
+- **User Profile**: Management of user details, profile updates, and account deletion.
+- **Address Management**: CRUD operations for user shipping/billing addresses.
+- **Product Catalog**:
+    - Category creation (Admin) and retrieval.
+    - Product management (Admin/Seller) and listing with filtering/pagination.
+- **Review System**: Nested reviews under products with creation and deletion capabilities.
+- **Shopping Cart**: Real-time cart management (Add, Update, Remove, Clear).
+- **Wishlist**: Management of favorite products with "Move to Cart" functionality.
+- **Order Management**: Checkout session generation, order creation, history, cancellation, and reordering.
+
+---
+
+## Postman Testing Guide
+
+**Base URL**: `http://localhost:5000/api/v1` (Adjust port if different)
+**Default Headers**: 
+- `Content-Type: application/json`
+- `Authorization: Bearer <YOUR_ACCESS_TOKEN>` (For protected routes)
+
+### 1. Authentication (`/auth`)
+| Method | Endpoint | Description | Payload (JSON) | Protection |
+| :--- | :--- | :--- | :--- | :--- |
+| POST | `/register` | Create a new account | `{ "name", "email", "password" }` | Public |
+| POST | `/login` | Access the system | `{ "email", "password" }` | Public |
+| POST | `/logout` | End session | `{ "refreshToken" }` | Public |
+| POST | `/refresh-tokens` | Get new access token | `{ "refreshToken" }` | Public |
+
+### 2. User Profile (`/users`)
+| Method | Endpoint | Description | Payload (JSON) | Protection |
+| :--- | :--- | :--- | :--- | :--- |
+| GET | `/me` | Get your profile | None | Protected |
+| PATCH | `/me` | Update profile info | `{ "name", "email" }` | Protected |
+| DELETE | `/me` | Delete your account | None | Protected |
+
+### 3. Products & Categories (`/products`)
+| Method | Endpoint | Description | Payload (JSON) | Protection |
+| :--- | :--- | :--- | :--- | :--- |
+| GET | `/` | List all products | Query params: `page`, `limit` | Public |
+| GET | `/:productId` | Product details | None | Public |
+| GET | `/categories` | List categories | None | Public |
+| POST | `/categories` | Create category | `{ "name", "description" }` | Admin |
+| POST | `/` | Add new product | `{ "name", "price", "category", ... }` | Admin/Seller |
+
+### 4. Reviews (`/products/:productId/reviews`)
+| Method | Endpoint | Description | Payload (JSON) | Protection |
+| :--- | :--- | :--- | :--- | :--- |
+| GET | `/` | See product reviews | None | Public |
+| POST | `/` | Post a review | `{ "rating", "comment" }` | Protected |
+| DELETE | `/:reviewId` | Remove a review | None | Protected |
+
+### 5. Shopping Cart (`/cart`)
+| Method | Endpoint | Description | Payload (JSON) | Protection |
+| :--- | :--- | :--- | :--- | :--- |
+| GET | `/` | View your cart | None | Protected |
+| POST | `/` | Add item | `{ "productId", "quantity" }` | Protected |
+| PATCH | `/:productId` | Update quantity | `{ "quantity" }` | Protected |
+| DELETE | `/:productId` | Remove item | None | Protected |
+| DELETE | `/` | Empty cart | None | Protected |
+
+### 6. Wishlist (`/wishlist`)
+| Method | Endpoint | Description | Payload (JSON) | Protection |
+| :--- | :--- | :--- | :--- | :--- |
+| GET | `/` | View wishlist | None | Protected |
+| POST | `/` | Add product | `{ "productId" }` | Protected |
+| DELETE | `/:productId` | Remove product | None | Protected |
+| POST | `/:productId/move` | Move to cart | None | Protected |
+
+### 7. Addresses (`/addresses`)
+| Method | Endpoint | Description | Payload (JSON) | Protection |
+| :--- | :--- | :--- | :--- | :--- |
+| GET | `/` | All addresses | None | Protected |
+| POST | `/` | New address | `{ "street", "city", "zipCode", ... }` | Protected |
+| GET | `/:addressId` | Address detail | None | Protected |
+| PATCH | `/:addressId` | Edit address | `{ "city", "zipCode", ... }` | Protected |
+| DELETE | `/:addressId` | Delete address | None | Protected |
+
+### 8. Orders (`/orders`)
+| Method | Endpoint | Description | Payload (JSON) | Protection |
+| :--- | :--- | :--- | :--- | :--- |
+| GET | `/checkout` | Checkout details | None | Protected |
+| POST | `/` | Place order | `{ "addressId", "paymentMethod" }` | Protected |
+| GET | `/` | Order history | None | Protected |
+| GET | `/:orderId` | Specific order | None | Protected |
+| POST | `/:orderId/cancel` | Cancel order | None | Protected |
+| POST | `/:orderId/reorder` | Repeat order | None | Protected |
