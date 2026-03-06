@@ -12,9 +12,13 @@ const createOrder = async (userId, addressId, paymentMethod) => {
     // 1. Get Summary (Validates cart & address, calcs totals)
     const summary = await checkoutService.getCheckoutSummary(userId, addressId);
 
+    if (!summary || !summary.items) {
+        throw new AppError("Cart is empty or checkout summary invalid", 400);
+    }
+
     // 2. Process Payment
     // In real world, we might do this on client side (Stripe) or server side (COD/API)
-    const paymentResult = await paymentService.processPayment(summary.totalAmount, paymentMethod);
+    const paymentResult = await paymentService.processPayment(summary.total, paymentMethod);
 
     if (!paymentResult.success) {
         throw new AppError('Payment failed', 400);
@@ -22,12 +26,13 @@ const createOrder = async (userId, addressId, paymentMethod) => {
 
     // 3. Create Order
     // Snapshot items
-    const orderItems = summary.cart.items.map(item => ({
-        product: item.product._id,
-        name: item.product.name,
+
+    const orderItems = summary.items.map(item => ({
+        product: item.product._id || item.product,
+        name: item.product.name || 'Product', // Fallback if populate failed or manual item
         quantity: item.quantity,
         price: item.price,
-        image: item.product.images[0] || '',
+        image: (item.product.images && item.product.images[0]) || '',
         totalProductPrice: item.totalProductPrice
     }));
 
@@ -37,15 +42,15 @@ const createOrder = async (userId, addressId, paymentMethod) => {
         shippingAddress: summary.address.toObject(), // Snapshot
         paymentMethod,
         paymentStatus: paymentResult.status,
-        totalAmount: summary.totalAmount,
-        subTotal: summary.subTotal,
+        totalAmount: summary.total,
+        subTotal: summary.subtotal,
         tax: summary.tax,
-        shippingFee: summary.shippingFee,
+        shippingFee: summary.shipping,
         transactionId: paymentResult.transactionId
     });
 
     // 4. Update Inventory
-    for (const item of summary.cart.items) {
+    for (const item of summary.items) {
         // We assume product exists (checked in cart add), but good to be safe
         // Bulk write is better for performance, doing loop for simplicity now
         await Product.findByIdAndUpdate(item.product._id, {

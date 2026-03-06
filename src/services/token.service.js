@@ -37,7 +37,7 @@ const verifyToken = async (token, type) => {
 };
 
 const generateAuthTokens = async (user) => {
-    const accessTokenExpires = Math.floor(Date.now() / 1000) + 15 * 60; // 15 mins
+    const accessTokenExpires = Math.floor(Date.now() / 1000) + 60 * 60; // 15 mins
     const accessToken = generateToken(user._id, accessTokenExpires, 'access');
 
     const refreshTokenExpires = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60; // 7 days

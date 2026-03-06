@@ -27,9 +27,27 @@ const refreshTokens = catchAsync(async (req, res) => {
     res.send({ ...tokens });
 });
 
+const forgotPassword = catchAsync(async (req, res) => {
+    await authService.generateResetOTP(req.body.email);
+    res.send({ message: 'OTP sent to your email' });
+});
+
+const verifyResetOTP = catchAsync(async (req, res) => {
+    await authService.verifyResetOTP(req.body.email, req.body.otp);
+    res.send({ message: 'OTP verified successfully' });
+});
+
+const resetPassword = catchAsync(async (req, res) => {
+    await authService.resetPassword(req.body.email, req.body.otp, req.body.newPassword);
+    res.send({ message: 'Password reset successful' });
+});
+
 module.exports = {
     register,
     login,
     logout,
     refreshTokens,
+    forgotPassword,
+    verifyResetOTP,
+    resetPassword,
 };

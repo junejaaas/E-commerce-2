@@ -32,10 +32,21 @@ const getProductById = async (id) => {
     return product;
 };
 
+const updateProductById = async (productId, updateBody) => {
+    const product = await Product.findById(productId);
+    if (!product) {
+        return null;
+    }
+    Object.assign(product, updateBody);
+    await product.save();
+    return product;
+};
+
 module.exports = {
     createCategory,
     getCategories,
     createProduct,
     getProducts,
     getProductById,
+    updateProductById,
 };
