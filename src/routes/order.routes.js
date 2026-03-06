@@ -9,6 +9,8 @@ router.use(authMiddleware.protect);
 
 router.get('/checkout', orderController.getCheckoutSession);
 
+router.get("/:orderId/invoice", orderController.downloadInvoice);
+
 router
     .route('/')
     .post(orderController.createOrder)

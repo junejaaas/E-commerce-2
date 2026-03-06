@@ -45,6 +45,52 @@ const reOrder = catchAsync(async (req, res) => {
     const cart = await orderService.reOrder(req.params.orderId, req.user.id);
     res.send(cart);
 });
+const PDFDocument = require("pdfkit");
+const Order = require("../models/order.model");
+
+const downloadInvoice = catchAsync(async (req, res) => {
+
+    const order = await Order.findById(req.params.orderId)
+        .populate("items.product");
+
+    if (!order) {
+        return res.status(404).json({
+            message: "Order not found"
+        });
+    }
+
+    const doc = new PDFDocument();
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=invoice-${order._id}.pdf`
+    );
+
+    doc.pipe(res);
+
+    doc.fontSize(20).text("Order Invoice");
+    doc.moveDown();
+
+    doc.text(`Order ID: ${order._id}`);
+    doc.text(`Total Price: ₹${order.totalPrice}`);
+    doc.text(`Status: ${order.status}`);
+    doc.text(`Date: ${order.createdAt}`);
+    doc.moveDown();
+
+    doc.text("Items:");
+
+    order.items.forEach(item => {
+        doc.text(
+            `${item.product?.name || "Product"} x${item.quantity} ₹${item.price * item.quantity}`
+        );
+    });
+
+    doc.moveDown();
+    doc.text(`Grand Total: ₹${order.totalPrice}`);
+
+    doc.end();
+});
 
 module.exports = {
     getCheckoutSession,
@@ -52,5 +98,6 @@ module.exports = {
     getOrders,
     getOrder,
     cancelOrder,
-    reOrder
+    reOrder,
+    downloadInvoice
 };

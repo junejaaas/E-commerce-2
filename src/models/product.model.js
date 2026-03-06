@@ -67,7 +67,7 @@ const productSchema = mongoose.Schema(
 // Indexes for performance
 productSchema.index({ name: 'text', description: 'text' }); // Text index for search
 productSchema.index({ price: 1 });
-productSchema.index({ slug: 1 });
+//productSchema.index({ slug: 1 });
 productSchema.index({ category: 1 });
 
 // Pre-save middleware to generate slug
