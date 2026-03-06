@@ -24,8 +24,32 @@ const refreshTokens = {
     }),
 };
 
+const forgotPassword = {
+    body: Joi.object().keys({
+        email: Joi.string().required().email(),
+    }),
+};
+
+const verifyResetOTP = {
+    body: Joi.object().keys({
+        email: Joi.string().required().email(),
+        otp: Joi.string().required().length(6).pattern(/^\d+$/),
+    }),
+};
+
+const resetPassword = {
+    body: Joi.object().keys({
+        email: Joi.string().required().email(),
+        otp: Joi.string().required().length(6).pattern(/^\d+$/),
+        newPassword: Joi.string().required().min(8),
+    }),
+};
+
 module.exports = {
     register,
     login,
     refreshTokens,
+    forgotPassword,
+    verifyResetOTP,
+    resetPassword,
 };
