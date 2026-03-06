@@ -24,6 +24,7 @@ const cartRoutes = require('./routes/cart.routes');
 const wishlistRoutes = require('./routes/wishlist.routes');
 const orderRoutes = require('./routes/order.routes');
 const checkoutRoutes = require('./routes/checkout.routes');
+const supportRoutes = require('./support/support.routes');
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
@@ -34,6 +35,7 @@ app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/wishlist', wishlistRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/checkout', checkoutRoutes);
+app.use('/api/v1/support', supportRoutes);
 app.get('/api/v1/health', (req, res) => {
     res.status(200).json({
         status: 'success',
