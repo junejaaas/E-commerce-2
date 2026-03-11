@@ -11,7 +11,7 @@ export const useWishlistStore = create((set, get) => ({
         set({ loading: true })
         try {
             const { data } = await API.get('/wishlist')
-            set({ items: data.wishlist || data, loading: false })
+            set({ items: data.products || [], loading: false })
         } catch (error) {
             set({ loading: false })
             toast.error(error.message || 'Failed to fetch wishlist')

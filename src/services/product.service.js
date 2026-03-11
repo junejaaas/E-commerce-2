@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Product = require('../models/product.model');
 const Category = require('../models/category.model');
 const APIFeatures = require('../utils/apiFeatures');
@@ -17,6 +18,21 @@ const createProduct = async (productBody) => {
 };
 
 const getProducts = async (query) => {
+    // Resolve category name/slug to ID if provided as string
+    if (query.category && !mongoose.Types.ObjectId.isValid(query.category)) {
+        const category = await Category.findOne({
+            $or: [
+                { name: query.category },
+                { slug: query.category.toLowerCase() }
+            ]
+        });
+        
+        if (!category) {
+            return { products: [], totalPages: 0 };
+        }
+        query.category = category._id;
+    }
+
     const features = new APIFeatures(Product.find().populate('category'), query)
         .filter()
         .sort()

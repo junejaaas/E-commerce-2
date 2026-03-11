@@ -1,0 +1,5 @@
+Categories in DB:
+- ID: 69a9c6eca8e5461936e2882c, Name: "Electronics", Slug: "electronics"
+- ID: 69a9c6f4a8e5461936e2882f, Name: "Clothing", Slug: "clothing"
+- ID: 69a9c6fba8e5461936e28832, Name: "Books", Slug: "books"
+- ID: 69a9c703a8e5461936e28835, Name: "Home Appliances", Slug: "home-appliances"

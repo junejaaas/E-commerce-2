@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
-import API from '../../services/api'
+import { useEffect } from 'react'
 import ProductCard from '../../components/product/ProductCard'
-import { Heart, Trash2, ShoppingCart } from 'lucide-react'
+import { Heart, Trash2 } from 'lucide-react'
+import { useWishlistStore } from '../../store/wishlistStore'
 import { useCartStore } from '../../store/cartStore'
 import toast from 'react-hot-toast'
 import { Link } from 'react-router-dom'
@@ -10,40 +10,11 @@ import LoadingSpinner from '../../components/common/LoadingSpinner'
 import EmptyState from '../../components/common/EmptyState'
 
 export default function Wishlist() {
-    const [items, setItems] = useState([])
-    const [loading, setLoading] = useState(true)
+    const { items, loading, fetchWishlist, removeFromWishlist, moveToCart } = useWishlistStore()
 
     useEffect(() => {
         fetchWishlist()
     }, [])
-
-    const fetchWishlist = async () => {
-        try {
-            const { data } = await API.get('/wishlist')
-            setItems(data.wishlist || data)
-        } catch (error) {
-            console.error('Failed to fetch wishlist', error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const { addToCart } = useCartStore()
-
-    const handleMoveToCart = async (productId) => {
-        await addToCart(productId)
-        handleRemove(productId)
-    }
-
-    const handleRemove = async (productId) => {
-        try {
-            await API.delete(`/wishlist/${productId}`)
-            setItems(items.filter(item => item._id !== productId))
-            toast.success('Removed from wishlist')
-        } catch (error) {
-            toast.error('Failed to remove item')
-        }
-    }
 
     if (loading) return <div className="p-20"><LoadingSpinner size="lg" /></div>
 
@@ -86,13 +57,13 @@ export default function Wishlist() {
 
                             <div className="flex gap-2">
                                 <Button
-                                    onClick={() => handleMoveToCart(product._id)}
+                                    onClick={() => moveToCart(product._id)}
                                     className="flex-1 rounded-xl text-xs py-2"
                                 >
                                     Move to Cart
                                 </Button>
                                 <button
-                                    onClick={() => handleRemove(product._id)}
+                                    onClick={() => removeFromWishlist(product._id)}
                                     className="p-2 border border-red-100 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
                                 >
                                     <Trash2 className="h-5 w-5" />

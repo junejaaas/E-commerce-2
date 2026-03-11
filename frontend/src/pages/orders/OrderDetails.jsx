@@ -142,9 +142,9 @@ export default function OrderDetails() {
                             <MapPin className="h-5 w-5 mr-2 text-primary-600" /> Delivery To
                         </h2>
                         <div className="text-gray-600 space-y-1">
-                            <p className="font-bold text-gray-900">{order.shippingAddress?.name}</p>
-                            <p>{order.shippingAddress?.addressLine}</p>
-                            <p>{order.shippingAddress?.city}, {order.shippingAddress?.state} - {order.shippingAddress?.pincode}</p>
+                            <p className="font-bold text-gray-900">{order.shippingAddress?.fullName}</p>
+                            <p>{order.shippingAddress?.street}</p>
+                            <p>{order.shippingAddress?.city}, {order.shippingAddress?.state} - {order.shippingAddress?.postalCode}</p>
                             <p className="pt-4 text-xs font-bold text-gray-400">{order.shippingAddress?.phoneNumber}</p>
                         </div>
                     </div>

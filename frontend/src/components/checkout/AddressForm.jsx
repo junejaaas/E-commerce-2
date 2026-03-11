@@ -7,7 +7,7 @@ import { useAddressStore } from '../../store/addressStore'
 
 const addressSchema = z.object({
     fullName: z.string().min(2, 'Full name is too short'),
-    phoneNumber: z.string().min(10, 'Invalid phone number'),
+    phoneNumber: z.string().regex(/^[0-9]{10}$/, 'Phone number must be exactly 10 digits'),
     street: z.string().min(5, 'Street address is too short'),
     city: z.string().min(2, 'City is too short'),
     state: z.string().min(2, 'State is too short'),

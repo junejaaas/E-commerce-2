@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+const Category = require('../models/category.model');
 const catchAsync = require('../utils/catchAsync');
 const productService = require('../services/product.service');
 const AppError = require('../utils/AppError');

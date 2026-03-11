@@ -18,6 +18,13 @@ const userSchema = new mongoose.Schema({
         unique: true,
         sparse: true, // Allows null/undefined to be non-unique
     },
+    gender: {
+        type: String,
+        enum: ['Male', 'Female', 'Other'],
+    },
+    dob: {
+        type: Date,
+    },
     role: {
         type: String,
         enum: ['user', 'seller', 'admin', 'support'],

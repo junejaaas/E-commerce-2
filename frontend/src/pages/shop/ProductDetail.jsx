@@ -1,21 +1,37 @@
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useProductStore } from '../../store/productStore'
+import { useWishlistStore } from '../../store/wishlistStore'
 import { Star, ShoppingCart, Heart, Shield, RefreshCcw, Truck, Minus, Plus, MessageSquare } from 'lucide-react'
 import { Button } from '../../components/common/Button'
 import { Input } from '../../components/common/Input'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import { useCartStore } from '../../store/cartStore'
+import API from '../../services/api'
 
 const reviewSchema = z.object({
     rating: z.number().min(1, 'Please select a rating').max(5),
-    comment: z.string().min(10, 'Comment must be at least 10 characters')
+    review: z.string().min(10, 'Review must be at least 10 characters')
 })
 
 export default function ProductDetail() {
     const { id } = useParams()
     const { product, loading, fetchProductDetails, addReview } = useProductStore()
+    const { items, addToWishlist, removeFromWishlist } = useWishlistStore()
+    const [reviews, setReviews] = useState([])
+    
+    const isInWishlist = items.some(item => item._id === id)
+
+    const handleWishlistToggle = () => {
+        if (isInWishlist) {
+            removeFromWishlist(id)
+        } else {
+            addToWishlist(id)
+        }
+    }
     const [quantity, setQuantity] = useState(1)
     const [activeImage, setActiveImage] = useState(0)
     const [showReviewForm, setShowReviewForm] = useState(false)
@@ -23,21 +39,31 @@ export default function ProductDetail() {
 
     const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
         resolver: zodResolver(reviewSchema),
-        defaultValues: { rating: 5, comment: '' }
+        defaultValues: { rating: 5, review: '' }
     })
 
     const selectedRating = watch('rating')
 
     useEffect(() => {
         fetchProductDetails(id)
+        fetchReviews()
     }, [id])
+
+    const fetchReviews = async () => {
+        try {
+            const { data } = await API.get(`/products/${id}/reviews`)
+            setReviews(data)
+        } catch (error) {
+            console.error('Failed to fetch reviews', error)
+        }
+    }
 
     const onSubmitReview = async (data) => {
         const success = await addReview(id, data)
         if (success) {
             setShowReviewForm(false)
             reset()
-            fetchProductDetails(id)
+            fetchReviews()
         }
     }
 
@@ -128,8 +154,11 @@ export default function ProductDetail() {
                             <ShoppingCart className="mr-2 h-5 w-5" /> Add to Cart
                         </Button>
 
-                        <button className="p-4 border border-gray-200 rounded-xl hover:bg-red-50 hover:border-red-100 transition-colors group">
-                            <Heart className="h-6 w-6 text-gray-400 group-hover:text-red-500" />
+                        <button 
+                            onClick={handleWishlistToggle}
+                            className={`p-4 border rounded-xl transition-all duration-300 group ${isInWishlist ? 'bg-red-50 border-red-100 text-red-500' : 'bg-white border-gray-200 text-gray-400 hover:bg-red-50 hover:border-red-100'}`}
+                        >
+                            <Heart className={`h-6 w-6 ${isInWishlist ? 'fill-current text-red-500' : 'group-hover:text-red-500'}`} />
                         </button>
                     </div>
 
@@ -185,13 +214,13 @@ export default function ProductDetail() {
                             </div>
 
                             <div className="space-y-1">
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Your Comment</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Your Review</label>
                                 <textarea
                                     className="w-full bg-white border border-gray-200 rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-primary-500 min-h-[150px]"
                                     placeholder="Tell others what you think about this product..."
-                                    {...register('comment')}
+                                    {...register('review')}
                                 />
-                                {errors.comment && <p className="text-red-500 text-xs mt-1 font-bold">{errors.comment.message}</p>}
+                                {errors.review && <p className="text-red-500 text-xs mt-1 font-bold">{errors.review.message}</p>}
                             </div>
 
                             <div className="flex justify-end gap-4">
@@ -221,7 +250,7 @@ export default function ProductDetail() {
                                     </div>
                                     <span className="text-xs text-gray-400 font-medium">Verified Purchase</span>
                                 </div>
-                                <p className="text-gray-600 leading-relaxed italic">"{review.comment}"</p>
+                                <p className="text-gray-600 leading-relaxed italic">"{review.review}"</p>
                             </div>
                         ))}
                     </div>

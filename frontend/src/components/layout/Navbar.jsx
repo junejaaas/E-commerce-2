@@ -61,8 +61,22 @@ export default function Navbar() {
                                     onClick={() => setShowProfileMenu(!showProfileMenu)}
                                     className="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100 transition-colors"
                                 >
-                                    <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold uppercase">
-                                        {user.name?.charAt(0)}
+                                    <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold uppercase overflow-hidden">
+                                        {user?.profilePicture ? (
+                                            <img 
+                                                src={user.profilePicture.startsWith('http') 
+                                                    ? user.profilePicture 
+                                                    : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace('/api/v1', '').replace(/\/$/, '')}${user.profilePicture}`} 
+                                                alt={user.name} 
+                                                className="h-full w-full object-cover"
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    e.target.parentElement.innerText = user?.name?.charAt(0);
+                                                }}
+                                            />
+                                        ) : (
+                                            user.name?.charAt(0)
+                                        )}
                                     </div>
                                 </button>
 

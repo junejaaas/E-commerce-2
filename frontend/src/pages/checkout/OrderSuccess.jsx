@@ -42,7 +42,7 @@ export default function OrderSuccess() {
                         </div>
                         <div>
                             <p className="text-gray-400 font-bold uppercase tracking-widest mb-1">Date</p>
-                            <p className="text-gray-900 font-bold">{new Date().toLocaleDateString()}</p>
+                            <p className="text-gray-900 font-bold">{order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}</p>
                         </div>
                     </div>
 
@@ -51,12 +51,12 @@ export default function OrderSuccess() {
                             <Package className="h-5 w-5 mr-2 text-primary-600" /> Order Items
                         </h3>
                         <div className="space-y-4">
-                            {order?.orderItems?.map(item => (
-                                <div key={item.product._id} className="flex justify-between items-center bg-gray-50 p-4 rounded-xl">
+                            {order?.items?.map((item, idx) => (
+                                <div key={idx} className="flex justify-between items-center bg-gray-50 p-4 rounded-xl">
                                     <div className="flex items-center space-x-4">
-                                        <img src={item.product.images[0]?.url} className="h-12 w-12 object-contain bg-white rounded-lg p-1 border" />
+                                        <img src={item.image} className="h-12 w-12 object-contain bg-white rounded-lg p-1 border" />
                                         <div>
-                                            <p className="font-bold text-gray-900 text-sm line-clamp-1">{item.product.name}</p>
+                                            <p className="font-bold text-gray-900 text-sm line-clamp-1">{item.name}</p>
                                             <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                                         </div>
                                     </div>
@@ -70,15 +70,15 @@ export default function OrderSuccess() {
                         <div className="flex-1 space-y-4">
                             <div className="flex justify-between text-gray-600">
                                 <span>Subtotal</span>
-                                <span className="font-bold text-gray-900">${order?.itemsPrice}</span>
+                                <span className="font-bold text-gray-900">${order?.subTotal?.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-gray-600">
                                 <span>Shipping</span>
-                                <span className="font-bold text-gray-900">${order?.shippingPrice}</span>
+                                <span className="font-bold text-gray-900">${order?.shippingFee?.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-lg font-black pt-4 border-t border-gray-100">
                                 <span className="text-gray-900">Total Paid</span>
-                                <span className="text-primary-600">${order?.totalPrice}</span>
+                                <span className="text-primary-600">${order?.totalAmount?.toFixed(2)}</span>
                             </div>
                         </div>
                     </div>

@@ -11,6 +11,12 @@ const updateProfile = catchAsync(async (req, res) => {
     res.send(user);
 });
 
+const uploadAvatar = catchAsync(async (req, res) => {
+    const avatarPath = `/uploads/${req.file.filename}`;
+    const user = await userService.updateUserById(req.user.id, { profilePicture: avatarPath });
+    res.send(user);
+});
+
 const deleteAccount = catchAsync(async (req, res) => {
     await userService.deleteUserById(req.user.id);
     res.status(204).send();
@@ -19,5 +25,6 @@ const deleteAccount = catchAsync(async (req, res) => {
 module.exports = {
     getProfile,
     updateProfile,
+    uploadAvatar,
     deleteAccount,
 };

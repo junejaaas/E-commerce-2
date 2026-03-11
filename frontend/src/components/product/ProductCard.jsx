@@ -1,10 +1,23 @@
 import { ShoppingCart, Heart, Star } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useCartStore } from '../../store/cartStore'
+import { useWishlistStore } from '../../store/wishlistStore'
 import { Button } from '../common/Button'
 
 export default function ProductCard({ product }) {
     const { addToCart } = useCartStore()
+    const { items, addToWishlist, removeFromWishlist } = useWishlistStore()
+
+    const isInWishlist = items.some(item => item._id === product._id)
+
+    const handleWishlistClick = (e) => {
+        e.preventDefault()
+        if (isInWishlist) {
+            removeFromWishlist(product._id)
+        } else {
+            addToWishlist(product._id)
+        }
+    }
 
     const {
         _id,
@@ -24,8 +37,11 @@ export default function ProductCard({ product }) {
                     alt={name}
                     className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 p-4"
                 />
-                <button className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-sm rounded-full text-gray-400 hover:text-red-500 transition-colors">
-                    <Heart className="h-5 w-5" />
+                <button 
+                    onClick={handleWishlistClick}
+                    className={`absolute top-4 right-4 p-2 backdrop-blur-sm rounded-full transition-all duration-300 z-10 ${isInWishlist ? 'bg-red-50 text-red-500 shadow-lg shadow-red-100' : 'bg-white/80 text-gray-400 hover:text-red-500 hover:bg-white'}`}
+                >
+                    <Heart className={`h-5 w-5 ${isInWishlist ? 'fill-current' : ''}`} />
                 </button>
             </Link>
 
