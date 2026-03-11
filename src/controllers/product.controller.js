@@ -38,6 +38,14 @@ const updateProduct = catchAsync(async (req, res) => {
     res.send(product);
 });
 
+const deleteProduct = catchAsync(async (req, res) => {
+    const product = await productService.deleteProductById(req.params.productId);
+    if (!product) {
+        throw new AppError('Product not found', 404);
+    }
+    res.status(204).send();
+});
+
 module.exports = {
     createCategory,
     getCategories,
@@ -45,4 +53,5 @@ module.exports = {
     getProducts,
     getProduct,
     updateProduct,
+    deleteProduct,
 };

@@ -26,6 +26,8 @@ const orderRoutes = require('./routes/order.routes');
 const shipmentRoutes = require('./routes/shipment.routes');
 const returnRoutes = require('./routes/return.routes');
 const checkoutRoutes = require('./routes/checkout.routes');
+const shippingMethodRoutes = require('./routes/shippingMethod.routes');
+const reviewRoutes = require('./routes/review.routes');
 const supportRoutes = require('./support/support.routes');
 
 // Routes
@@ -39,6 +41,8 @@ app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/shipment', shipmentRoutes);
 app.use('/api/v1/returns', returnRoutes);
 app.use('/api/v1/checkout', checkoutRoutes);
+app.use('/api/v1/shipping-methods', shippingMethodRoutes);
+app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/support', supportRoutes);
 
 app.get('/api/v1/health', (req, res) => {

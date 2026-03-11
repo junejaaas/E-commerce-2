@@ -42,6 +42,15 @@ const updateProductById = async (productId, updateBody) => {
     return product;
 };
 
+const deleteProductById = async (productId) => {
+    const product = await Product.findById(productId);
+    if (!product) {
+        return null;
+    }
+    await product.deleteOne();
+    return product;
+};
+
 module.exports = {
     createCategory,
     getCategories,
@@ -49,4 +58,5 @@ module.exports = {
     getProducts,
     getProductById,
     updateProductById,
+    deleteProductById,
 };

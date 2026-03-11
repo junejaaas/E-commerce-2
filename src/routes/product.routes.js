@@ -33,6 +33,11 @@ router
         authMiddleware.authorize('admin', 'seller'),
         validate(productValidation.updateProduct),
         productController.updateProduct
+    )
+    .delete(
+        authMiddleware.protect,
+        authMiddleware.authorize('admin', 'seller'),
+        productController.deleteProduct
     );
 
 module.exports = router;
