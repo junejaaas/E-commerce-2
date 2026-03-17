@@ -20,7 +20,14 @@ export default function Login() {
 
   const onSubmit = async (data) => {
     const success = await login(data)
-    if (success) navigate('/')
+    if (success) {
+      const { user } = useAuthStore.getState()
+      if (user?.role === 'admin') {
+        navigate('/admin')
+      } else {
+        navigate('/')
+      }
+    }
   }
 
   return (

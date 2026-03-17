@@ -23,6 +23,9 @@ import Wishlist from './pages/wishlist/Wishlist.jsx'
 import Checkout from './pages/checkout/Checkout.jsx'
 import OrderSuccess from './pages/checkout/OrderSuccess.jsx'
 
+// Admin Layout
+import AdminLayout from './components/layout/AdminLayout.jsx'
+
 // Profile Pages
 import Profile from './pages/profile/Profile.jsx'
 import Orders from './pages/profile/Orders.jsx'
@@ -35,13 +38,21 @@ import SupportTickets from './pages/support/SupportTickets.jsx'
 import TicketDetails from './pages/support/TicketDetails.jsx'
 
 import AdminProducts from './pages/admin/AdminProducts.jsx'
+import AdminOrders from './pages/admin/AdminOrders.jsx'
 import SupportPanel from './pages/admin/SupportPanel.jsx'
 import SupportTicketDetails from './pages/admin/SupportTicketDetails.jsx'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
-    const { token } = useAuthStore()
+    const { token, user } = useAuthStore()
     if (!token) return <Navigate to="/login" />
+    return children
+}
+
+const AdminRoute = ({ children }) => {
+    const { token, user } = useAuthStore()
+    if (!token) return <Navigate to="/login" />
+    if (user && user.role !== 'admin') return <Navigate to="/" />
     return children
 }
 
@@ -91,9 +102,12 @@ function App() {
                 {/* Support Routes */}
                 <Route path="/support/tickets" element={<ProtectedRoute><Layout><SupportTickets /></Layout></ProtectedRoute>} />
                 <Route path="/support/tickets/:id" element={<ProtectedRoute><Layout><TicketDetails /></Layout></ProtectedRoute>} />
-                <Route path="/admin" element={<ProtectedRoute><Layout><AdminProducts /></Layout></ProtectedRoute>} />
-                <Route path="/admin/support" element={<ProtectedRoute><Layout><SupportPanel /></Layout></ProtectedRoute>} />
-                <Route path="/admin/support/:id" element={<ProtectedRoute><Layout><SupportTicketDetails /></Layout></ProtectedRoute>} />
+                
+                {/* Admin Routes */}
+                <Route path="/admin" element={<AdminRoute><AdminLayout><AdminProducts /></AdminLayout></AdminRoute>} />
+                <Route path="/admin/orders" element={<AdminRoute><AdminLayout><AdminOrders /></AdminLayout></AdminRoute>} />
+                <Route path="/admin/support" element={<AdminRoute><AdminLayout><SupportPanel /></AdminLayout></AdminRoute>} />
+                <Route path="/admin/support/:id" element={<AdminRoute><AdminLayout><SupportTicketDetails /></AdminLayout></AdminRoute>} />
             </Routes>
         </Router>
     )

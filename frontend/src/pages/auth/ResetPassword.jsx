@@ -51,7 +51,7 @@ export default function ResetPassword() {
                         error={errors.password?.message}
                         {...register('password', {
                             required: 'Password is required',
-                            minLength: { value: 6, message: 'Min 6 characters' }
+                            minLength: { value: 8, message: 'Min 8 characters' }
                         })}
                     />
 

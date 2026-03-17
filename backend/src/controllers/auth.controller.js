@@ -28,8 +28,27 @@ const refreshTokens = catchAsync(async (req, res) => {
 });
 
 const forgotPassword = catchAsync(async (req, res) => {
-    await authService.generateResetOTP(req.body.email);
-    res.send({ message: 'OTP sent to your email' });
+    try {
+        console.log("Forgot password route hit");
+        console.log("body:", req.body);
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required' });
+        }
+
+        await authService.generateResetOTP(email);
+        
+        return res.status(200).json({ 
+            message: 'OTP sent successfully' 
+        });
+    } catch (error) {
+        console.error("Forgot Password Error:", error);
+        return res.status(error.statusCode || 500).json({
+            status: 'error',
+            message: error.message || 'Internal server error while processing request'
+        });
+    }
 });
 
 const verifyResetOTP = catchAsync(async (req, res) => {

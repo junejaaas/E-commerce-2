@@ -21,7 +21,7 @@ export default function VerifyOTP() {
     const onSubmit = async (data) => {
         setLoading(true)
         try {
-            await API.post('/auth/verify-otp', { email, otp: data.otp })
+            await API.post('/auth/verify-reset-otp', { email, otp: data.otp })
             toast.success('OTP Verified!')
             navigate('/reset-password', { state: { email, otp: data.otp } })
         } catch (error) {
