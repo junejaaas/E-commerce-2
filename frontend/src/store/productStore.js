@@ -11,6 +11,11 @@ export const useProductStore = create((set, get) => ({
         category: '',
         sort: '',
         search: '',
+        minPrice: '',
+        maxPrice: '',
+        ratingsAverage: '',
+        availability: '',
+        brand: '',
         page: 1
     },
     totalPages: 1,
@@ -27,6 +32,11 @@ export const useProductStore = create((set, get) => ({
                 category: '',
                 sort: '',
                 search: '',
+                minPrice: '',
+                maxPrice: '',
+                ratingsAverage: '',
+                availability: '',
+                brand: '',
                 page: 1
             }
         })
@@ -40,12 +50,19 @@ export const useProductStore = create((set, get) => ({
             if (filters.category) params.append('category', filters.category)
             if (filters.sort) params.append('sort', filters.sort)
             if (filters.search) params.append('keyword', filters.search)
+            if (filters.minPrice) params.append('price[gte]', filters.minPrice)
+            if (filters.maxPrice) params.append('price[lte]', filters.maxPrice)
+            if (filters.ratingsAverage) params.append('ratingsAverage[gte]', filters.ratingsAverage)
+            if (filters.availability) params.append('availability', filters.availability)
+            if (filters.brand) params.append('brand', filters.brand)
             params.append('page', filters.page)
+            params.append('limit', 9) // Consistent limit for the grid
 
-            const { data } = await API.get(`/products?${params.toString()}`)
+            const { data: response } = await API.get(`/products?${params.toString()}`)
+            const data = response.data || response // Support both structures
             set({ 
-                products: data.products || data, 
-                totalPages: data.totalPages || 1,
+                products: data.products || [], 
+                totalPages: response.pagination?.totalPages || 1,
                 loading: false 
             })
         } catch (error) {
@@ -66,8 +83,9 @@ export const useProductStore = create((set, get) => ({
     fetchProductDetails: async (id) => {
         set({ loading: true, product: null })
         try {
-            const { data } = await API.get(`/products/${id}`)
-            set({ product: data.product || data, loading: false })
+            const { data: response } = await API.get(`/products/${id}`)
+            const productData = response.data?.product || response.product || response
+            set({ product: productData, loading: false })
         } catch (error) {
             set({ loading: false })
             toast.error(error.message || 'Failed to load product details')

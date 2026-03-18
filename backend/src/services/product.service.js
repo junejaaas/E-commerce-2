@@ -40,7 +40,24 @@ const getProducts = async (query) => {
         .paginate();
 
     const products = await features.query;
-    return products;
+    
+    // Get total count for pagination
+    const countFeatures = new APIFeatures(Product.find(), query)
+        .filter();
+    const totalResults = await countFeatures.query.countDocuments();
+    
+    const limit = query.limit * 1 || 100;
+    const totalPages = Math.ceil(totalResults / limit);
+
+    return {
+        products,
+        pagination: {
+            totalResults,
+            totalPages,
+            page: query.page * 1 || 1,
+            limit
+        }
+    };
 };
 
 const getProductById = async (id) => {

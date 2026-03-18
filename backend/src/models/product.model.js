@@ -56,6 +56,11 @@ const productSchema = mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        brand: {
+            type: String,
+            required: [true, 'Please provide a brand name'],
+            trim: true,
+        },
     },
     {
         timestamps: true,
@@ -69,6 +74,7 @@ productSchema.index({ name: 'text', description: 'text' }); // Text index for se
 productSchema.index({ price: 1 });
 //productSchema.index({ slug: 1 });
 productSchema.index({ category: 1 });
+productSchema.index({ brand: 1 });
 
 // Pre-save middleware to generate slug
 productSchema.pre('save', function (next) {

@@ -107,9 +107,9 @@ export default function ProductDetail() {
                         <div className="flex items-center mt-4 space-x-4">
                             <div className="flex items-center bg-yellow-50 px-3 py-1 rounded-full">
                                 <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
-                                <span className="font-bold text-yellow-700">{product.ratings}</span>
+                                <span className="font-bold text-yellow-700">{product.ratingsAverage || 0}</span>
                             </div>
-                            <span className="text-gray-500 border-l border-gray-200 pl-4">{product.numOfReviews} Reviews</span>
+                            <span className="text-gray-500 border-l border-gray-200 pl-4">{product.ratingsQuantity || 0} Reviews</span>
                             {product.stock > 0 ? (
                                 <span className="text-green-600 font-bold flex items-center bg-green-50 px-3 py-1 rounded-full text-xs">
                                     <div className="h-2 w-2 bg-green-500 rounded-full mr-2 animate-pulse" /> In Stock

@@ -8,9 +8,18 @@ const EmptyState = ({
     title, 
     description, 
     actionLabel, 
-    actionPath 
+    actionPath,
+    onAction
 }) => {
     const navigate = useNavigate();
+    
+    const handleAction = () => {
+        if (onAction) {
+            onAction();
+        } else if (actionPath) {
+            navigate(actionPath);
+        }
+    };
 
     return (
         <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
@@ -19,8 +28,8 @@ const EmptyState = ({
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-2">{title}</h3>
             <p className="text-gray-500 max-w-sm mb-8">{description}</p>
-            {actionLabel && actionPath && (
-                <Button onClick={() => navigate(actionPath)}>
+            {actionLabel && (actionPath || onAction) && (
+                <Button onClick={handleAction}>
                     {actionLabel}
                 </Button>
             )}

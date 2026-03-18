@@ -20,8 +20,15 @@ const createProduct = catchAsync(async (req, res) => {
 });
 
 const getProducts = catchAsync(async (req, res) => {
-    const products = await productService.getProducts(req.query);
-    res.send(products);
+    const result = await productService.getProducts(req.query);
+    res.status(200).json({
+        status: 'success',
+        results: result.products.length,
+        data: {
+            products: result.products
+        },
+        pagination: result.pagination
+    });
 });
 
 const getProduct = catchAsync(async (req, res) => {
@@ -29,7 +36,12 @@ const getProduct = catchAsync(async (req, res) => {
     if (!product) {
         throw new AppError('Product not found', 404);
     }
-    res.send(product);
+    res.status(200).json({
+        status: 'success',
+        data: {
+            product
+        }
+    });
 });
 
 const updateProduct = catchAsync(async (req, res) => {

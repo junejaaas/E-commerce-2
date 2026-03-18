@@ -24,7 +24,7 @@ export default function ProductCard({ product }) {
         name,
         price,
         images = [],
-        ratings = 0,
+        ratingsAverage = 0,
         numOfReviews = 0,
         category
     } = product
@@ -58,9 +58,10 @@ export default function ProductCard({ product }) {
                 <div className="flex items-center space-x-1 mb-4">
                     <div className="flex text-yellow-400">
                         {[...Array(5)].map((_, i) => (
-                            <Star key={i} className={`h-4 w-4 ${i < ratings ? 'fill-current' : 'text-gray-200'}`} />
+                            <Star key={i} className={`h-4 w-4 ${i < Math.floor(ratingsAverage) ? 'fill-current' : 'text-gray-200'}`} />
                         ))}
                     </div>
+                    <span className="text-xs text-gray-400 font-bold">{ratingsAverage}</span>
                     <span className="text-xs text-gray-500">({numOfReviews})</span>
                 </div>
 

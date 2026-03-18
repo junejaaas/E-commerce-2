@@ -2,12 +2,15 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ShoppingCart, Heart, User, Search, Menu, LogOut, Package, ShieldCheck, MapPin, MessageSquare } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { useCartStore } from '../../store/cartStore'
+import { useProductStore } from '../../store/productStore'
 import { useState, useEffect } from 'react'
 
 export default function Navbar() {
     const { user, logout } = useAuthStore()
     const { cart, fetchCart } = useCartStore()
+    const { setFilters } = useProductStore()
     const [showProfileMenu, setShowProfileMenu] = useState(false)
+    const [searchQuery, setSearchQuery] = useState('')
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -17,6 +20,15 @@ export default function Navbar() {
     const handleLogout = () => {
         logout()
         navigate('/login')
+    }
+
+    const handleSearch = (e) => {
+        if (e.key === 'Enter' || e.type === 'click') {
+            setFilters({ search: searchQuery, page: 1 })
+            if (window.location.pathname !== '/products') {
+                navigate('/products')
+            }
+        }
     }
 
     return (
@@ -35,8 +47,11 @@ export default function Navbar() {
                                 type="text"
                                 placeholder="Search for products..."
                                 className="w-full pl-10 pr-4 py-2 bg-gray-100 border-none rounded-full focus:ring-2 focus:ring-primary-500 text-sm"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={handleSearch}
                             />
-                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400 cursor-pointer" onClick={handleSearch} />
                         </div>
                     </div>
 
