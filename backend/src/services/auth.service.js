@@ -69,11 +69,20 @@ const generateResetOTP = async (email) => {
     });
 
     try {
-   await sendResetOTPEmail(user.email, otp);
-} catch (error) {
-   console.error("EMAIL ERROR:", error);
-   throw new Error("There was an error sending the email. Try again later.");
-}
+        await sendResetOTPEmail(user.email, otp);
+    } catch (error) {
+        let message = "There was an error sending the email. Try again later.";
+        
+        if (process.env.NODE_ENV === 'development') {
+            if (error.code === 'ETIMEDOUT' || error.message.includes('timeout')) {
+                message = `Email sending timed out. Check your SMTP connection. Details: ${error.message}`;
+            } else {
+                message = `Email error: ${error.message}`;
+            }
+        }
+        
+        throw new AppError(message, 500);
+    }
 };
 
 const verifyResetOTP = async (email, otp) => {

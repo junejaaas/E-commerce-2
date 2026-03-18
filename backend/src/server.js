@@ -1,6 +1,7 @@
 require('dotenv').config();
 const app = require('./app');
 const connectDB = require('./config/db');
+const { verifyTransporter } = require('./services/email.service');
 
 const http = require("http");
 const { Server } = require("socket.io");
@@ -9,6 +10,9 @@ const PORT = process.env.PORT || 5000;
 
 // Connect Database
 connectDB();
+
+// Verify Email Transporter
+verifyTransporter();
 
 // Create HTTP server
 const server = http.createServer(app);
