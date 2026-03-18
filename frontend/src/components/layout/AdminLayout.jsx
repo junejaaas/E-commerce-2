@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
-import { LayoutDashboard, Package, ShoppingCart, MessageSquare, LogOut, Menu } from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingCart, MessageSquare, LogOut, Menu, BarChart2 } from 'lucide-react'
 import { useState } from 'react'
 
 export default function AdminLayout({ children }) {
@@ -9,7 +9,8 @@ export default function AdminLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
 
     const menuItems = [
-        { title: 'Inventory', path: '/admin', icon: <Package className="h-5 w-5" /> },
+        { title: 'Dashboard', path: '/admin', exact: true, icon: <BarChart2 className="h-5 w-5" /> },
+        { title: 'Inventory', path: '/admin/products', icon: <Package className="h-5 w-5" /> },
         { title: 'Orders', path: '/admin/orders', icon: <ShoppingCart className="h-5 w-5" /> },
         { title: 'Support', path: '/admin/support', icon: <MessageSquare className="h-5 w-5" /> },
     ]
@@ -28,19 +29,21 @@ export default function AdminLayout({ children }) {
                         <LayoutDashboard className="h-6 w-6 mr-2" /> ADMIN
                     </span>
                 </div>
-                
+
                 <nav className="p-4 space-y-1">
                     {menuItems.map((item) => {
-                        const isActive = location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path))
+                        const isActive = item.exact
+                            ? location.pathname === item.path
+                            : location.pathname === item.path || location.pathname.startsWith(item.path + '/')
                         return (
                             <Link
                                 key={item.path}
                                 to={item.path}
-                                className={`flex items-center px-4 py-3 rounded-xl transition-all font-semibold ${
-                                    isActive 
-                                    ? 'bg-primary-600 text-white shadow-md shadow-primary-200' 
+                                onClick={() => setSidebarOpen(false)}
+                                className={`flex items-center px-4 py-3 rounded-xl transition-all font-semibold ${isActive
+                                    ? 'bg-primary-600 text-white shadow-md shadow-primary-200'
                                     : 'text-gray-500 hover:bg-primary-50 hover:text-primary-600'
-                                }`}
+                                    }`}
                             >
                                 {item.icon}
                                 <span className="ml-3">{item.title}</span>
@@ -54,13 +57,13 @@ export default function AdminLayout({ children }) {
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Topbar */}
                 <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-20">
-                    <button 
+                    <button
                         className="md:hidden p-2 text-gray-400 hover:text-gray-600 bg-gray-50 rounded-lg"
                         onClick={() => setSidebarOpen(!sidebarOpen)}
                     >
                         <Menu className="h-6 w-6" />
                     </button>
-                    
+
                     <div className="flex-1"></div>
 
                     <div className="flex items-center space-x-4">
@@ -70,7 +73,7 @@ export default function AdminLayout({ children }) {
                         </div>
                         <div className="h-10 w-10 rounded-xl bg-primary-100 flex items-center justify-center text-primary-700 font-bold overflow-hidden border border-primary-200">
                             {user?.profilePicture ? (
-                                <img 
+                                <img
                                     src={user.profilePicture.startsWith('http') ? user.profilePicture : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace('/api/v1', '')}${user.profilePicture}`}
                                     alt="Admin"
                                     className="h-full w-full object-cover"
@@ -79,7 +82,7 @@ export default function AdminLayout({ children }) {
                                 user?.name?.charAt(0) || 'A'
                             )}
                         </div>
-                        <button 
+                        <button
                             onClick={handleLogout}
                             className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all ml-2"
                         >
@@ -93,10 +96,10 @@ export default function AdminLayout({ children }) {
                     {children}
                 </main>
             </div>
-            
+
             {/* Mobile Overlay */}
             {sidebarOpen && (
-                <div 
+                <div
                     className="fixed inset-0 bg-gray-900/50 z-20 md:hidden backdrop-blur-sm"
                     onClick={() => setSidebarOpen(false)}
                 />

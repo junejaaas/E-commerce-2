@@ -37,6 +37,7 @@ import Addresses from './pages/profile/Addresses.jsx'
 import SupportTickets from './pages/support/SupportTickets.jsx'
 import TicketDetails from './pages/support/TicketDetails.jsx'
 
+import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 import AdminProducts from './pages/admin/AdminProducts.jsx'
 import AdminOrders from './pages/admin/AdminOrders.jsx'
 import SupportPanel from './pages/admin/SupportPanel.jsx'
@@ -102,9 +103,10 @@ function App() {
                 {/* Support Routes */}
                 <Route path="/support/tickets" element={<ProtectedRoute><Layout><SupportTickets /></Layout></ProtectedRoute>} />
                 <Route path="/support/tickets/:id" element={<ProtectedRoute><Layout><TicketDetails /></Layout></ProtectedRoute>} />
-                
+
                 {/* Admin Routes */}
-                <Route path="/admin" element={<AdminRoute><AdminLayout><AdminProducts /></AdminLayout></AdminRoute>} />
+                <Route path="/admin" element={<AdminRoute><AdminLayout><AdminDashboard /></AdminLayout></AdminRoute>} />
+                <Route path="/admin/products" element={<AdminRoute><AdminLayout><AdminProducts /></AdminLayout></AdminRoute>} />
                 <Route path="/admin/orders" element={<AdminRoute><AdminLayout><AdminOrders /></AdminLayout></AdminRoute>} />
                 <Route path="/admin/support" element={<AdminRoute><AdminLayout><SupportPanel /></AdminLayout></AdminRoute>} />
                 <Route path="/admin/support/:id" element={<AdminRoute><AdminLayout><SupportTicketDetails /></AdminLayout></AdminRoute>} />

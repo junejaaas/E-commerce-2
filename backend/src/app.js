@@ -31,6 +31,7 @@ const checkoutRoutes = require('./routes/checkout.routes');
 const shippingMethodRoutes = require('./routes/shippingMethod.routes');
 const reviewRoutes = require('./routes/review.routes');
 const supportRoutes = require('./support/support.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
@@ -46,6 +47,7 @@ app.use('/api/v1/checkout', checkoutRoutes);
 app.use('/api/v1/shipping-methods', shippingMethodRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/support', supportRoutes);
+app.use('/api/v1/dashboard', dashboardRoutes);
 
 app.get('/api/v1/health', (req, res) => {
     res.status(200).json({

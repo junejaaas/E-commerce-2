@@ -1,7 +1,6 @@
 const express = require('express');
 const authMiddleware = require('../middlewares/auth.middleware');
 const orderController = require('../controllers/order.controller');
-// Validation middleware could be added here for order creation
 
 const router = express.Router();
 
@@ -9,8 +8,12 @@ router.use(authMiddleware.protect);
 
 router.get('/checkout', orderController.getCheckoutSession);
 
-router.get("/:orderId/invoice", orderController.downloadInvoice);
+// ADMIN
+router.get("/admin", authMiddleware.authorize('admin'), orderController.getAllOrdersAdmin);
+router.get("/admin/:orderId", authMiddleware.authorize('admin'), orderController.getOrderAdmin);
+router.patch("/admin/:orderId", authMiddleware.authorize('admin'), orderController.updateOrderStatus);
 
+// USER
 router
     .route('/')
     .post(orderController.createOrder)
@@ -22,5 +25,7 @@ router
 
 router.post('/:orderId/cancel', orderController.cancelOrder);
 router.post('/:orderId/reorder', orderController.reOrder);
+
+router.get("/:orderId/invoice", orderController.downloadInvoice);
 
 module.exports = router;
