@@ -6,7 +6,7 @@ class APIFeatures {
 
     filter() {
         const queryObj = { ...this.queryString };
-        const excludedFields = ['page', 'sort', 'limit', 'fields', 'keyword'];
+        const excludedFields = ['page', 'sort', 'limit', 'fields', 'keyword', 'availability'];
         excludedFields.forEach((el) => delete queryObj[el]);
 
         // Handle flat operator format (e.g., ?price[gte]=5000) and nested format

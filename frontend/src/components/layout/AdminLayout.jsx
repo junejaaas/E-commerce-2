@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
-import { LayoutDashboard, Package, ShoppingCart, MessageSquare, LogOut, Menu, BarChart2, User, Store, ChevronDown } from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingCart, MessageSquare, LogOut, Menu, BarChart2, User, Store, ChevronDown, Ticket } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 
 export default function AdminLayout({ children }) {
@@ -16,6 +16,7 @@ export default function AdminLayout({ children }) {
         { title: 'Inventory', path: '/admin/products', icon: <Package className="h-5 w-5" /> },
         { title: 'Orders', path: '/admin/orders', icon: <ShoppingCart className="h-5 w-5" /> },
         { title: 'Support', path: '/admin/support', icon: <MessageSquare className="h-5 w-5" /> },
+        { title: 'Coupons', path: '/admin/coupons', icon: <Ticket className="h-5 w-5" /> },
     ]
 
     const handleLogout = () => {

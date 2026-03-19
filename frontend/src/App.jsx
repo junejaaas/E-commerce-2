@@ -33,7 +33,7 @@ import OrderDetails from './pages/orders/OrderDetails.jsx'
 import ReturnRequest from './pages/orders/ReturnRequest.jsx'
 import Addresses from './pages/profile/Addresses.jsx'
 
-// Support Pages
+import AdminCoupons from './pages/admin/AdminCoupons.jsx'
 import SupportTickets from './pages/support/SupportTickets.jsx'
 import TicketDetails from './pages/support/TicketDetails.jsx'
 
@@ -67,7 +67,7 @@ const Layout = ({ children }) => (
 
 function App() {
     console.log('App Rendering')
-    const fetchMe = useAuthStore(state => state.fetchMe)
+    const { user, fetchMe } = useAuthStore()
 
     useEffect(() => {
         console.log('App Mounted, fetching user...')
@@ -85,7 +85,7 @@ function App() {
                 <Route path="/reset-password" element={<ResetPassword />} />
 
                 {/* Shop Routes */}
-                <Route path="/" element={<Layout><Home /></Layout>} />
+                <Route path="/" element={user?.role === 'admin' ? <Navigate to="/admin" replace /> : <Layout><Home /></Layout>} />
                 <Route path="/products" element={<Layout><ProductList /></Layout>} />
                 <Route path="/products/:id" element={<Layout><ProductDetail /></Layout>} />
                 <Route path="/cart" element={<ProtectedRoute><Layout><Cart /></Layout></ProtectedRoute>} />
@@ -110,6 +110,7 @@ function App() {
                 <Route path="/admin/orders" element={<AdminRoute><AdminLayout><AdminOrders /></AdminLayout></AdminRoute>} />
                 <Route path="/admin/support" element={<AdminRoute><AdminLayout><SupportPanel /></AdminLayout></AdminRoute>} />
                 <Route path="/admin/support/:id" element={<AdminRoute><AdminLayout><SupportTicketDetails /></AdminLayout></AdminRoute>} />
+                <Route path="/admin/coupons" element={<AdminRoute><AdminLayout><AdminCoupons /></AdminLayout></AdminRoute>} />
             </Routes>
         </Router>
     )
