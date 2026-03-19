@@ -4,7 +4,10 @@ const createProduct = {
     body: Joi.object().keys({
         name: Joi.string().required(),
         description: Joi.string().required(),
-        price: Joi.number().required().min(0),
+        originalPrice: Joi.number().required().min(0),
+        discountedPrice: Joi.number().min(0),
+        discountPercentage: Joi.number().min(0).max(100),
+        price: Joi.number().min(0), // Support legacy price field
         stock: Joi.number().required().min(0),
         category: Joi.string().required(), // ObjectId
         brand: Joi.string().required(),
@@ -39,9 +42,13 @@ const updateProduct = {
         .keys({
             name: Joi.string(),
             description: Joi.string(),
+            originalPrice: Joi.number().min(0),
+            discountedPrice: Joi.number().min(0),
+            discountPercentage: Joi.number().min(0).max(100),
             price: Joi.number().min(0),
             stock: Joi.number().min(0),
             category: Joi.string(),
+            brand: Joi.string(),
             images: Joi.array().items(Joi.string()),
             isFeatured: Joi.boolean(),
         })

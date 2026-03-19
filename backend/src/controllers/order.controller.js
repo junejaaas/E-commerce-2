@@ -158,6 +158,11 @@ const downloadInvoice = catchAsync(async (req, res) => {
 
 });
 
+const refundOrder = catchAsync(async (req, res) => {
+    const order = await orderService.refundOrder(req.params.orderId);
+    res.status(200).json(order);
+});
+
 module.exports = {
     getCheckoutSession,
     createOrder,
@@ -168,5 +173,6 @@ module.exports = {
     updateOrderStatus,
     cancelOrder,
     reOrder,
-    downloadInvoice
+    downloadInvoice,
+    refundOrder
 };

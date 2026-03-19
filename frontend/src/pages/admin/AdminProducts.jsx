@@ -17,7 +17,18 @@ export default function AdminProducts() {
     const [searchTerm, setSearchTerm] = useState('')
     const [stockFilter, setStockFilter] = useState('all') // 'all', 'low', 'out'
 
-    const { register, handleSubmit, reset, formState: { errors } } = useForm()
+    const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm()
+
+    const watchedOriginalPrice = watch('originalPrice')
+    const watchedDiscountPercentage = watch('discountPercentage')
+
+    // Auto-calculate discounted price when original price or percentage changes
+    useEffect(() => {
+        if (watchedOriginalPrice && watchedDiscountPercentage) {
+            const disco = Math.round(watchedOriginalPrice * (1 - watchedDiscountPercentage / 100))
+            setValue('discountedPrice', disco)
+        }
+    }, [watchedOriginalPrice, watchedDiscountPercentage, setValue])
 
     useEffect(() => {
         fetchProducts()
@@ -88,17 +99,26 @@ export default function AdminProducts() {
     const [editData, setEditData] = useState({})
     const startEdit = (product) => {
         setEditingId(product._id)
-        setEditData({ ...product })
+        setEditData({ 
+            ...product,
+            originalPrice: product.originalPrice || product.price
+        })
     }
 
     const saveEdit = async () => {
         try {
             // Only send fields that the validation allows
-            const updatePayload = {}
-            if (editData.name) updatePayload.name = editData.name
-            if (editData.price !== undefined) updatePayload.price = Number(editData.price)
-            if (editData.stock !== undefined) updatePayload.stock = Number(editData.stock)
-            if (editData.description) updatePayload.description = editData.description
+            const updatePayload = {
+                name: editData.name,
+                originalPrice: Number(editData.originalPrice),
+                discountedPrice: Number(editData.discountedPrice),
+                discountPercentage: Number(editData.discountPercentage),
+                stock: Number(editData.stock),
+                description: editData.description,
+                brand: editData.brand,
+                category: editData.category?._id || editData.category,
+                isFeatured: editData.isFeatured
+            }
 
             await API.patch(`/products/${editingId}`, updatePayload)
             toast.success('Product updated')
@@ -206,13 +226,17 @@ export default function AdminProducts() {
                                 )}
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <Input label="Brand" {...register('brand', { required: true })} />
-                            <Input label="Image URL" {...register('imageUrl')} />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <Input label="Original Price" type="number" {...register('originalPrice', { required: true })} />
+                            <Input label="Discount %" type="number" {...register('discountPercentage')} />
+                            <Input label="Discounted Price" type="number" {...register('discountedPrice')} />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <Input label="Price" type="number" {...register('price', { required: true })} />
                             <Input label="Stock" type="number" {...register('stock', { required: true })} />
+                            <Input label="Brand" {...register('brand', { required: true })} />
+                        </div>
+                        <div className="grid grid-cols-1 gap-8">
+                            <Input label="Image URL" {...register('imageUrl')} />
                         </div>
                         <textarea
                             className="w-full h-32 p-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-primary-500"
@@ -233,7 +257,7 @@ export default function AdminProducts() {
                             <tr>
                                 <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">Product</th>
                                 <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">Category</th>
-                                <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">Price</th>
+                                <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">Pricing</th>
                                 <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">Stock</th>
                                 <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
                             </tr>
@@ -260,33 +284,110 @@ export default function AdminProducts() {
                                                 </div>
                                                 <div>
                                                     {editingId === product._id ? (
-                                                        <input
-                                                            className="font-bold text-gray-900 border-b border-primary-500 outline-none w-full"
-                                                            value={editData.name}
-                                                            onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                                                        />
+                                                        <div className="space-y-2 w-full">
+                                                            <input
+                                                                className="font-bold text-gray-900 border-b border-primary-500 outline-none w-full"
+                                                                value={editData.name}
+                                                                onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                                                                placeholder="Name"
+                                                            />
+                                                            <input
+                                                                className="text-xs text-gray-600 border-b border-gray-200 outline-none w-full"
+                                                                value={editData.brand}
+                                                                onChange={(e) => setEditData({ ...editData, brand: e.target.value })}
+                                                                placeholder="Brand"
+                                                            />
+                                                            <textarea
+                                                                className="text-[10px] text-gray-500 border border-gray-100 rounded-md outline-none w-full p-1 h-12"
+                                                                value={editData.description}
+                                                                onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                                                                placeholder="Description"
+                                                            />
+                                                            <div className="flex items-center space-x-2">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={editData.isFeatured}
+                                                                    onChange={(e) => setEditData({ ...editData, isFeatured: e.target.checked })}
+                                                                    id={`featured-${product._id}`}
+                                                                />
+                                                                <label htmlFor={`featured-${product._id}`} className="text-[10px] font-bold uppercase text-gray-400">Featured</label>
+                                                            </div>
+                                                        </div>
                                                     ) : (
-                                                        <p className="font-bold text-gray-900 truncate max-w-[200px]">{product.name}</p>
+                                                        <>
+                                                            <p className="font-bold text-gray-900 truncate max-w-[200px]">{product.name}</p>
+                                                            <p className="text-[10px] text-gray-500 font-medium italic">{product.brand}</p>
+                                                        </>
                                                     )}
                                                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">ID: {product._id.slice(-6)}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <span className="text-xs font-black text-gray-500 uppercase tracking-wider bg-gray-100 px-3 py-1 rounded-full">
-                                                {product.category?.name || product.category}
-                                            </span>
+                                                {editingId === product._id ? (
+                                                    <select
+                                                        className="text-xs font-black text-gray-500 uppercase tracking-wider bg-white border border-gray-200 px-2 py-1 rounded-full outline-none focus:ring-1 focus:ring-primary-500"
+                                                        value={editData.category?._id || editData.category}
+                                                        onChange={(e) => setEditData({ ...editData, category: e.target.value })}
+                                                    >
+                                                        {categories.map(cat => (
+                                                            <option key={cat._id} value={cat._id}>{cat.name}</option>
+                                                        ))}
+                                                    </select>
+                                                ) : (
+                                                    <span className="text-xs font-black text-gray-500 uppercase tracking-wider bg-gray-100 px-3 py-1 rounded-full">
+                                                        {product.category?.name || product.category}
+                                                    </span>
+                                                )}
                                         </td>
                                         <td className="px-8 py-6">
                                             {editingId === product._id ? (
-                                                <input
-                                                    type="number"
-                                                    className="font-black text-primary-600 border-b border-primary-500 outline-none w-20"
-                                                    value={editData.price}
-                                                    onChange={(e) => setEditData({ ...editData, price: e.target.value })}
-                                                />
+                                                <div className="flex flex-col space-y-2">
+                                                    <div className="flex items-center">
+                                                        <span className="text-[10px] w-12 text-gray-400 font-bold">Orig:</span>
+                                                        <input
+                                                            type="number"
+                                                            className="font-black text-gray-600 border-b border-gray-200 outline-none w-20 text-xs"
+                                                            value={editData.originalPrice}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                const newData = { ...editData, originalPrice: val };
+                                                                if (newData.discountPercentage) {
+                                                                    newData.discountedPrice = Math.round(val * (1 - newData.discountPercentage / 100));
+                                                                }
+                                                                setEditData(newData);
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <div className="flex items-center">
+                                                        <span className="text-[10px] w-12 text-gray-400 font-bold">Disc %:</span>
+                                                        <input
+                                                            type="number"
+                                                            className="font-black text-primary-600 border-b border-primary-500 outline-none w-20 text-xs"
+                                                            value={editData.discountPercentage}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                const newData = { ...editData, discountPercentage: val };
+                                                                if (newData.originalPrice) {
+                                                                    newData.discountedPrice = Math.round(newData.originalPrice * (1 - val / 100));
+                                                                }
+                                                                setEditData(newData);
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </div>
                                             ) : (
-                                                <span className="font-black text-primary-600">${product.price}</span>
+                                                <div className="flex flex-col">
+                                                    <span className={`font-black ${product.discountedPrice ? 'text-gray-400 line-through text-xs' : 'text-primary-600'}`}>
+                                                        ${product.originalPrice || product.price}
+                                                    </span>
+                                                    {product.discountedPrice && (
+                                                        <span className="font-black text-primary-600">
+                                                            ${product.discountedPrice}
+                                                            <span className="ml-2 text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded-md">-{product.discountPercentage}%</span>
+                                                        </span>
+                                                    )}
+                                                </div>
                                             )}
                                         </td>
                                         <td className="px-8 py-6 font-bold text-gray-600">

@@ -12,6 +12,7 @@ router.get('/checkout', orderController.getCheckoutSession);
 router.get("/admin", authMiddleware.authorize('admin'), orderController.getAllOrdersAdmin);
 router.get("/admin/:orderId", authMiddleware.authorize('admin'), orderController.getOrderAdmin);
 router.patch("/admin/:orderId", authMiddleware.authorize('admin'), orderController.updateOrderStatus);
+router.patch("/admin/:orderId/refund", authMiddleware.authorize('admin'), orderController.refundOrder);
 
 // USER
 router

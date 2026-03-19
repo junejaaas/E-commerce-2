@@ -22,18 +22,30 @@ export default function ProductCard({ product }) {
     const {
         _id,
         name,
+        originalPrice = 0,
+        discountedPrice = 0,
+        discountPercentage = 0,
         price,
         images = [],
         ratingsAverage = 0,
-        numOfReviews = 0,
+        ratingsQuantity = 0,
         category
     } = product
+
+    const getImageUrl = (img) => {
+        if (!img) return 'https://via.placeholder.com/300';
+        const url = typeof img === 'string' ? img : img.url;
+        if (!url) return 'https://via.placeholder.com/300';
+        if (url.startsWith('http')) return url;
+        const baseURL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace('/api/v1', '');
+        return `${baseURL.replace(/\/$/, '')}${url.startsWith('/') ? '' : '/'}${url}`;
+    };
 
     return (
         <div className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
             <Link to={`/products/${_id}`} className="relative block h-64 overflow-hidden">
                 <img
-                    src={images[0]?.url || 'https://via.placeholder.com/300'}
+                    src={getImageUrl(images[0])}
                     alt={name}
                     className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 p-4"
                 />
@@ -55,18 +67,32 @@ export default function ProductCard({ product }) {
                     </div>
                 </div>
 
-                <div className="flex items-center space-x-1 mb-4">
-                    <div className="flex text-yellow-400">
-                        {[...Array(5)].map((_, i) => (
-                            <Star key={i} className={`h-4 w-4 ${i < Math.floor(ratingsAverage) ? 'fill-current' : 'text-gray-200'}`} />
-                        ))}
+                {ratingsQuantity > 0 && (
+                    <div className="flex items-center space-x-1 mb-4">
+                        <div className="flex text-yellow-400">
+                            {[...Array(5)].map((_, i) => (
+                                <Star key={i} className={`h-4 w-4 ${i < Math.floor(ratingsAverage) ? 'fill-current' : 'text-gray-200'}`} />
+                            ))}
+                        </div>
+                        <span className="text-xs text-gray-400 font-bold">{ratingsAverage}</span>
+                        <span className="text-xs text-gray-500">({ratingsQuantity})</span>
                     </div>
-                    <span className="text-xs text-gray-400 font-bold">{ratingsAverage}</span>
-                    <span className="text-xs text-gray-500">({numOfReviews})</span>
-                </div>
+                )}
 
                 <div className="flex items-center justify-between">
-                    <span className="text-2xl font-black text-gray-900">${price}</span>
+                    <div className="flex flex-col">
+                        {discountedPrice > 0 ? (
+                            <>
+                                <span className="text-2xl font-black text-primary-600">${discountedPrice}</span>
+                                <div className="flex items-center space-x-2">
+                                    <span className="text-sm font-bold text-gray-400 line-through">${originalPrice || price}</span>
+                                    <span className="text-[10px] font-black bg-red-100 text-red-600 px-2 py-0.5 rounded-lg">-{discountPercentage}%</span>
+                                </div>
+                            </>
+                        ) : (
+                            <span className="text-2xl font-black text-gray-900">${originalPrice || price}</span>
+                        )}
+                    </div>
                     <Button
                         size="sm"
                         className="rounded-full h-10 w-10 p-0"

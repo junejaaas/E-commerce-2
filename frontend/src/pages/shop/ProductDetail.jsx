@@ -17,6 +17,16 @@ const reviewSchema = z.object({
     review: z.string().min(10, 'Review must be at least 10 characters')
 })
 
+// Helper function to get image URL
+const getImageUrl = (image) => {
+    if (!image) return 'https://via.placeholder.com/600';
+    const url = typeof image === 'string' ? image : image.url;
+    if (!url) return 'https://via.placeholder.com/600';
+    if (url.startsWith('http')) return url;
+    const baseURL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace('/api/v1', '');
+    return `${baseURL.replace(/\/$/, '')}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 export default function ProductDetail() {
     const { id } = useParams()
     const { product, loading, fetchProductDetails, addReview } = useProductStore()
@@ -80,7 +90,7 @@ export default function ProductDetail() {
                 <div className="space-y-4">
                     <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm overflow-hidden h-[500px] flex items-center justify-center">
                         <img
-                            src={product.images?.[activeImage]?.url || 'https://via.placeholder.com/600'}
+                            src={getImageUrl(product.images?.[activeImage])}
                             className="max-h-full max-w-full object-contain hover:scale-105 transition-transform duration-500"
                             alt={product.name}
                         />
@@ -92,7 +102,10 @@ export default function ProductDetail() {
                                 onClick={() => setActiveImage(i)}
                                 className={`h-20 w-20 flex-shrink-0 rounded-xl border-2 p-2 transition-all ${activeImage === i ? 'border-primary-600 bg-primary-50' : 'border-gray-100 hover:border-primary-200'}`}
                             >
-                                <img src={img.url} className="h-full w-full object-contain" />
+                                <img 
+                                    src={getImageUrl(img)} 
+                                    className="h-full w-full object-contain" 
+                                />
                             </button>
                         ))}
                     </div>
@@ -104,25 +117,53 @@ export default function ProductDetail() {
                         <span className="text-primary-600 font-bold uppercase tracking-widest text-sm">{product.category?.name || product.category}</span>
                         <h1 className="text-4xl md:text-5xl font-black text-gray-900 mt-2 leading-tight">{product.name}</h1>
 
-                        <div className="flex items-center mt-4 space-x-4">
-                            <div className="flex items-center bg-yellow-50 px-3 py-1 rounded-full">
-                                <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
-                                <span className="font-bold text-yellow-700">{product.ratingsAverage || 0}</span>
+                        {product.ratingsQuantity > 0 && (
+                            <div className="flex items-center mt-4 space-x-4">
+                                <div className="flex items-center bg-yellow-50 px-3 py-1 rounded-full">
+                                    <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
+                                    <span className="font-bold text-yellow-700">{product.ratingsAverage || 0}</span>
+                                </div>
+                                <span className="text-gray-500 border-l border-gray-200 pl-4">{product.ratingsQuantity || 0} Reviews</span>
+                                {product.stock > 0 ? (
+                                    <span className="text-green-600 font-bold flex items-center bg-green-50 px-3 py-1 rounded-full text-xs">
+                                        <div className="h-2 w-2 bg-green-500 rounded-full mr-2 animate-pulse" /> In Stock
+                                    </span>
+                                ) : (
+                                    <span className="text-red-600 font-bold px-3 py-1 bg-red-50 rounded-full text-xs">Out of Stock</span>
+                                )}
                             </div>
-                            <span className="text-gray-500 border-l border-gray-200 pl-4">{product.ratingsQuantity || 0} Reviews</span>
-                            {product.stock > 0 ? (
-                                <span className="text-green-600 font-bold flex items-center bg-green-50 px-3 py-1 rounded-full text-xs">
-                                    <div className="h-2 w-2 bg-green-500 rounded-full mr-2 animate-pulse" /> In Stock
-                                </span>
-                            ) : (
-                                <span className="text-red-600 font-bold px-3 py-1 bg-red-50 rounded-full text-xs">Out of Stock</span>
-                            )}
-                        </div>
+                        )}
+                        {product.ratingsQuantity === 0 && (
+                             <div className="flex items-center mt-4 space-x-4">
+                                 {product.stock > 0 ? (
+                                    <span className="text-green-600 font-bold flex items-center bg-green-50 px-3 py-1 rounded-full text-xs">
+                                        <div className="h-2 w-2 bg-green-500 rounded-full mr-2 animate-pulse" /> In Stock
+                                    </span>
+                                ) : (
+                                    <span className="text-red-600 font-bold px-3 py-1 bg-red-50 rounded-full text-xs">Out of Stock</span>
+                                )}
+                             </div>
+                        )}
                     </div>
 
-                    <div className="text-3xl font-black text-gray-900">
-                        ${product.price}
-                    </div>
+                        <div className="flex flex-col mt-6">
+                            {product.discountedPrice > 0 ? (
+                                <div className="space-y-2">
+                                    <div className="flex items-center space-x-3">
+                                        <span className="text-4xl md:text-5xl font-black text-primary-600">${product.discountedPrice}</span>
+                                        <span className="bg-red-500 text-white px-3 py-1 rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-red-100 animate-bounce">
+                                            {product.discountPercentage}% OFF
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center space-x-2 text-gray-400">
+                                        <span className="text-xl font-medium line-through">${product.originalPrice || product.price}</span>
+                                        <span className="text-sm font-bold bg-gray-100 text-gray-500 px-2 py-1 rounded-lg">Save ${((product.originalPrice || product.price) - product.discountedPrice).toLocaleString()}</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <span className="text-4xl md:text-5xl font-black text-gray-900">${product.originalPrice || product.price}</span>
+                            )}
+                        </div>
 
                     <p className="text-gray-600 leading-relaxed text-lg">
                         {product.description}

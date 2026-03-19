@@ -53,46 +53,55 @@ API.interceptors.response.use(
         const originalRequest = error.config
 
         if (error.response?.status === 401 && !originalRequest._retry) {
-            if (isRefreshing) {
-                return new Promise(function (resolve, reject) {
-                    failedQueue.push({ resolve, reject })
-                })
-                    .then((token) => {
-                        originalRequest.headers['Authorization'] = 'Bearer ' + token
-                        return API(originalRequest)
+            // Check if it's an auth request that shouldn't be retried or redirected
+            const isAuthRequest = originalRequest.url.includes('/auth/login') || 
+                                 originalRequest.url.includes('/auth/register') ||
+                                 originalRequest.url.includes('/auth/forgot-password') ||
+                                 originalRequest.url.includes('/auth/verify-reset-otp') ||
+                                 originalRequest.url.includes('/auth/reset-password');
+
+            if (!isAuthRequest) {
+                if (isRefreshing) {
+                    return new Promise(function (resolve, reject) {
+                        failedQueue.push({ resolve, reject })
                     })
-                    .catch((err) => {
-                        return Promise.reject(err)
+                        .then((token) => {
+                            originalRequest.headers['Authorization'] = 'Bearer ' + token
+                            return API(originalRequest)
+                        })
+                        .catch((err) => {
+                            return Promise.reject(err)
+                        })
+                }
+
+                originalRequest._retry = true
+                isRefreshing = true
+
+                const refreshToken = localStorage.getItem('refreshToken')
+                if (!refreshToken) {
+                    isRefreshing = false
+                    window.location.href = '/login'
+                    return Promise.reject(error)
+                }
+
+                try {
+                    const { data } = await axios.post(`${API.defaults.baseURL}/auth/refresh-tokens`, {
+                        refreshToken,
                     })
-            }
-
-            originalRequest._retry = true
-            isRefreshing = true
-
-            const refreshToken = localStorage.getItem('refreshToken')
-            if (!refreshToken) {
-                isRefreshing = false
-                window.location.href = '/login'
-                return Promise.reject(error)
-            }
-
-            try {
-                const { data } = await axios.post(`${API.defaults.baseURL}/auth/refresh-tokens`, {
-                    refreshToken,
-                })
-                const newToken = data.tokens?.access?.token || data.token
-                localStorage.setItem('token', newToken)
-                API.defaults.headers.common['Authorization'] = 'Bearer ' + newToken
-                processQueue(null, newToken)
-                return API(originalRequest)
-            } catch (err) {
-                processQueue(err, null)
-                localStorage.removeItem('token')
-                localStorage.removeItem('refreshToken')
-                window.location.href = '/login'
-                return Promise.reject(err)
-            } finally {
-                isRefreshing = false
+                    const newToken = data.tokens?.access?.token || data.token
+                    localStorage.setItem('token', newToken)
+                    API.defaults.headers.common['Authorization'] = 'Bearer ' + newToken
+                    processQueue(null, newToken)
+                    return API(originalRequest)
+                } catch (err) {
+                    processQueue(err, null)
+                    localStorage.removeItem('token')
+                    localStorage.removeItem('refreshToken')
+                    window.location.href = '/login'
+                    return Promise.reject(err)
+                } finally {
+                    isRefreshing = false
+                }
             }
         }
 

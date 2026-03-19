@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import API from '../services/api'
-import toast from 'react-hot-toast'
+import { toast } from 'react-hot-toast'
 import { useCartStore } from './cartStore'
 
 export const useWishlistStore = create((set, get) => ({
