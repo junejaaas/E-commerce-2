@@ -42,7 +42,9 @@ const getUserTickets = async (userId, options = {}) => {
  * Get ticket details with messages
  */
 const getTicketDetails = async (ticketId, userId, role) => {
-    const ticket = await SupportTicket.findById(ticketId).populate('messages');
+    const ticket = await SupportTicket.findById(ticketId)
+        .populate('messages')
+        .populate('userId', 'name email');
 
     if (!ticket) {
         throw new AppError('Ticket not found', 404);

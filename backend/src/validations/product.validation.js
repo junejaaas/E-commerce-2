@@ -10,6 +10,14 @@ const createProduct = {
         brand: Joi.string().required(),
         images: Joi.array().items(Joi.string()),
         isFeatured: Joi.boolean(),
+        sku: Joi.string(),
+        discountPrice: Joi.number().min(0),
+        status: Joi.string().valid('active', 'inactive', 'draft'),
+        tags: Joi.array().items(Joi.string()),
+        variants: Joi.array().items(Joi.string()),
+        isFeatured: Joi.boolean(),
+        seoTitle: Joi.string().allow('', null),
+        seoDescription: Joi.string().allow('', null),
     }),
 };
 
@@ -18,6 +26,7 @@ const getProducts = {
         name: Joi.string(),
         price: Joi.string(), // Allowing logic operators like price[gte]
         category: Joi.string(),
+        isFeatured: Joi.boolean(),
         sortBy: Joi.string(),
         limit: Joi.number().integer(),
         page: Joi.number().integer(),
@@ -42,8 +51,16 @@ const updateProduct = {
             price: Joi.number().min(0),
             stock: Joi.number().min(0),
             category: Joi.string(),
+            brand: Joi.string(),
             images: Joi.array().items(Joi.string()),
             isFeatured: Joi.boolean(),
+            sku: Joi.string(),
+            discountPrice: Joi.number().min(0),
+            status: Joi.string().valid('active', 'inactive', 'draft'),
+            tags: Joi.array().items(Joi.string()),
+            variants: Joi.array().items(Joi.string()),
+            seoTitle: Joi.string().allow('', null),
+            seoDescription: Joi.string().allow('', null),
         })
         .min(1),
 };

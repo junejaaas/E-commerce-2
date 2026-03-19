@@ -43,8 +43,8 @@ const productSchema = mongoose.Schema(
         },
         ratingsAverage: {
             type: Number,
-            default: 4.5,
-            min: [1, 'Rating must be above 1.0'],
+            default: 0,
+            min: [0, 'Rating must be above 0.0'],
             max: [5, 'Rating must be below 5.0'],
             set: (val) => Math.round(val * 10) / 10, // 4.666666 -> 4.7
         },
@@ -59,6 +59,37 @@ const productSchema = mongoose.Schema(
         brand: {
             type: String,
             required: [true, 'Please provide a brand name'],
+            trim: true,
+        },
+        sku: {
+            type: String,
+            unique: true,
+            trim: true,
+        },
+        discountPrice: {
+            type: Number,
+            default: 0,
+            validate: {
+                validator: function(val) {
+                    // This only works on CREATE, not UPDATE by default in Mongoose
+                    return val < this.price;
+                },
+                message: 'Discount price ({VALUE}) should be below regular price'
+            }
+        },
+        status: {
+            type: String,
+            enum: ['active', 'inactive', 'draft'],
+            default: 'active',
+        },
+        tags: [String],
+        variants: [String],
+        seoTitle: {
+            type: String,
+            trim: true,
+        },
+        seoDescription: {
+            type: String,
             trim: true,
         },
     },
@@ -76,11 +107,20 @@ productSchema.index({ price: 1 });
 productSchema.index({ category: 1 });
 productSchema.index({ brand: 1 });
 
-// Pre-save middleware to generate slug
+// Pre-save middleware to generate slug and SKU
 productSchema.pre('save', function (next) {
     if (this.isModified('name')) {
         this.slug = this.name.toLowerCase().replace(/[^a-zA-Z0-9 ]/g, "").split(' ').join('-');
     }
+    
+    // Auto-generate SKU if not provided
+    if (!this.sku) {
+        const randomStr = Math.random().toString(36).substring(2, 7).toUpperCase();
+        const brandPrefix = this.brand ? this.brand.substring(0, 3).toUpperCase() : 'PRD';
+        const namePrefix = this.name ? this.name.substring(0, 3).toUpperCase() : 'GEN';
+        this.sku = `${brandPrefix}-${namePrefix}-${randomStr}`;
+    }
+    
     next();
 });
 

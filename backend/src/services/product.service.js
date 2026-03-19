@@ -12,6 +12,28 @@ const getCategories = async () => {
     return await Category.find();
 }
 
+const updateCategory = async (id, updateBody) => {
+    const category = await Category.findById(id);
+    if (!category) return null;
+    Object.assign(category, updateBody);
+    await category.save();
+    return category;
+};
+
+const deleteCategory = async (id) => {
+    const category = await Category.findById(id);
+    if (!category) return null;
+    
+    // Optional: Check if products are using this category before delete
+    const productCount = await Product.countDocuments({ category: id });
+    if (productCount > 0) {
+        throw new Error(`Cannot delete category with ${productCount} active products. Please reassign products first.`);
+    }
+
+    await category.deleteOne();
+    return category;
+};
+
 const createProduct = async (productBody) => {
     const product = await Product.create(productBody);
     return product;
@@ -87,6 +109,8 @@ const deleteProductById = async (productId) => {
 module.exports = {
     createCategory,
     getCategories,
+    updateCategory,
+    deleteCategory,
     createProduct,
     getProducts,
     getProductById,

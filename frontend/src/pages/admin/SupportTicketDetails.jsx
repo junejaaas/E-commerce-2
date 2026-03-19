@@ -45,8 +45,9 @@ export default function SupportTicketDetails() {
         if (!newMessage.trim()) return
         setSending(true)
         try {
-            const { data } = await API.post(`/support/admin/tickets/${id}/messages`, { message: newMessage })
-            setMessages([...messages, data.message || data])
+            const { data: responseBody } = await API.post(`/support/admin/tickets/${id}/messages`, { message: newMessage })
+            const newMsg = responseBody.data?.message || responseBody.message || responseBody
+            setMessages([...messages, newMsg])
             setNewMessage('')
             if (ticket.status === 'open') {
                 updateStatus('pending')
@@ -159,11 +160,11 @@ export default function SupportTicketDetails() {
                         <div className="space-y-4">
                             <div>
                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Name</p>
-                                <p className="text-sm font-bold text-gray-900">{ticket.userId?.name || 'Loading...'}</p>
+                                <p className="text-sm font-bold text-gray-900">{ticket.userId?.name || 'Customer'}</p>
                             </div>
                             <div>
                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Email</p>
-                                <p className="text-sm font-medium text-gray-600">{ticket.userId?.email || 'Loading...'}</p>
+                                <p className="text-sm font-medium text-gray-600">{ticket.userId?.email || 'N/A'}</p>
                             </div>
                             <hr className="border-gray-50" />
                             <div>

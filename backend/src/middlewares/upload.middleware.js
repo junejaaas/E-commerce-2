@@ -8,9 +8,9 @@ const storage = multer.diskStorage({
         cb(null, 'src/public/uploads');
     },
     filename: function (req, file, cb) {
-        // Create unique filename: user-id-timestamp.ext
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, `avatar-${req.user.id}-${uniqueSuffix}${path.extname(file.originalname)}`);
+        const prefix = req.body.prefix || 'file';
+        cb(null, `${prefix}-${uniqueSuffix}${path.extname(file.originalname)}`);
     }
 });
 

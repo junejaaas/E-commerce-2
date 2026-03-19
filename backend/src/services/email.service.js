@@ -19,7 +19,11 @@ const transporter = nodemailer.createTransport({
  */
 const verifyTransporter = async () => {
     try {
-        await transporter.verify();
+        // Use a Promise.race to timeout verification if it hangs
+        const timeout = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Email verification timed out')), 10000)
+        );
+        await Promise.race([transporter.verify(), timeout]);
         console.log('✅ Email transporter verified successfully');
         return true;
     } catch (error) {

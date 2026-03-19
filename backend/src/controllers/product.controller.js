@@ -14,6 +14,22 @@ const getCategories = catchAsync(async (req, res) => {
     res.send(categories);
 });
 
+const updateCategory = catchAsync(async (req, res) => {
+    const category = await productService.updateCategory(req.params.categoryId, req.body);
+    if (!category) {
+        throw new AppError('Category not found', 404);
+    }
+    res.send(category);
+});
+
+const deleteCategory = catchAsync(async (req, res) => {
+    const category = await productService.deleteCategory(req.params.categoryId);
+    if (!category) {
+        throw new AppError('Category not found', 404);
+    }
+    res.status(204).send();
+});
+
 const createProduct = catchAsync(async (req, res) => {
     const product = await productService.createProduct(req.body);
     res.status(201).send(product);
@@ -60,6 +76,20 @@ const deleteProduct = catchAsync(async (req, res) => {
     res.status(204).send();
 });
 
+const uploadImages = catchAsync(async (req, res) => {
+    if (!req.files || req.files.length === 0) {
+        throw new AppError('Please upload at least one image', 400);
+    }
+
+    const urls = req.files.map(file => `/uploads/${file.filename}`);
+    res.status(200).json({
+        status: 'success',
+        data: {
+            urls
+        }
+    });
+});
+
 module.exports = {
     createCategory,
     getCategories,
@@ -68,4 +98,7 @@ module.exports = {
     getProduct,
     updateProduct,
     deleteProduct,
+    uploadImages,
+    updateCategory,
+    deleteCategory,
 };
