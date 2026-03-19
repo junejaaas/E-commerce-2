@@ -8,6 +8,8 @@ import { PackagePlus, Image as ImageIcon, LayoutGrid, Trash2, Edit, X, Save, Sea
 
 export default function AdminProducts() {
     const [products, setProducts] = useState([])
+    const [categories, setCategories] = useState([])
+    const [isNewCategory, setIsNewCategory] = useState(false)
     const [loading, setLoading] = useState(false)
     const [fetching, setFetching] = useState(true)
     const [editingId, setEditingId] = useState(null)
@@ -19,6 +21,7 @@ export default function AdminProducts() {
 
     useEffect(() => {
         fetchProducts()
+        fetchCategories()
     }, [])
 
     const fetchProducts = async () => {
@@ -32,17 +35,37 @@ export default function AdminProducts() {
         }
     }
 
+    const fetchCategories = async () => {
+        try {
+            const { data } = await API.get('/products/categories')
+            setCategories(Array.isArray(data) ? data : data.data || [])
+        } catch (error) {
+            console.error('Failed to fetch categories', error)
+        }
+    }
+
     const onCreateSubmit = async (data) => {
         setLoading(true)
         try {
+            let categoryId = data.category
+
+            if (isNewCategory) {
+                const { data: newCat } = await API.post('/products/categories', { name: data.category })
+                categoryId = newCat._id
+                await fetchCategories()
+            }
+
+            const { imageUrl, ...rest } = data
             const productData = {
-                ...data,
-                images: [data.imageUrl || 'https://via.placeholder.com/300']
+                ...rest,
+                category: categoryId,
+                images: [imageUrl || 'https://via.placeholder.com/300']
             }
             await API.post('/products', productData)
             toast.success('Product created')
             reset()
             setShowAddForm(false)
+            setIsNewCategory(false)
             fetchProducts()
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to create product')
@@ -154,17 +177,47 @@ export default function AdminProducts() {
                     <form onSubmit={handleSubmit(onCreateSubmit)} className="bg-white p-10 rounded-3xl border border-gray-100 shadow-xl space-y-8">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <Input label="Name" {...register('name', { required: true })} />
-                            <Input label="Category" {...register('category', { required: true })} />
+                            <div>
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className="block text-sm font-semibold text-gray-700">Category</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsNewCategory(!isNewCategory)}
+                                        className="text-[10px] font-black uppercase tracking-widest text-primary-600 hover:text-primary-700 underline"
+                                    >
+                                        {isNewCategory ? 'Select Existing' : 'Add New?'}
+                                    </button>
+                                </div>
+                                {isNewCategory ? (
+                                    <Input
+                                        placeholder="New Category Name"
+                                        {...register('category', { required: true })}
+                                    />
+                                ) : (
+                                    <select
+                                        {...register('category', { required: true })}
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                                    >
+                                        <option value="">Select a category</option>
+                                        {categories.map(cat => (
+                                            <option key={cat._id} value={cat._id}>{cat.name}</option>
+                                        ))}
+                                    </select>
+                                )}
+                            </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <Input label="Brand" {...register('brand', { required: true })} />
+                            <Input label="Image URL" {...register('imageUrl')} />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <Input label="Price" type="number" {...register('price', { required: true })} />
                             <Input label="Stock" type="number" {...register('stock', { required: true })} />
-                            <Input label="Image URL" {...register('imageUrl')} />
                         </div>
                         <textarea
                             className="w-full h-32 p-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-primary-500"
                             placeholder="Product Description"
-                            {...register('description')}
+                            {...register('description', { required: true })}
                         />
                         <div className="flex justify-end pt-4">
                             <Button type="submit" isLoading={loading}>Create Product</Button>

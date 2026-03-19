@@ -7,6 +7,7 @@ const createProduct = {
         price: Joi.number().required().min(0),
         stock: Joi.number().required().min(0),
         category: Joi.string().required(), // ObjectId
+        brand: Joi.string().required(),
         images: Joi.array().items(Joi.string()),
         isFeatured: Joi.boolean(),
     }),
