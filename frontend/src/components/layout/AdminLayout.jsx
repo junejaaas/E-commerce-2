@@ -1,12 +1,15 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
-import { LayoutDashboard, Package, ShoppingCart, MessageSquare, LogOut, Menu, BarChart2 } from 'lucide-react'
-import { useState } from 'react'
+import { LayoutDashboard, Package, ShoppingCart, MessageSquare, LogOut, Menu, BarChart2, User, Store, ChevronDown } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
 
 export default function AdminLayout({ children }) {
     const { user, logout } = useAuthStore()
     const location = useLocation()
+    const navigate = useNavigate()
     const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [showProfileMenu, setShowProfileMenu] = useState(false)
+    const profileMenuRef = useRef(null)
 
     const menuItems = [
         { title: 'Dashboard', path: '/admin', exact: true, icon: <BarChart2 className="h-5 w-5" /> },
@@ -17,8 +20,19 @@ export default function AdminLayout({ children }) {
 
     const handleLogout = () => {
         logout()
-        window.location.href = '/login'
+        navigate('/login')
     }
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
+                setShowProfileMenu(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
 
     return (
         <div className="min-h-screen bg-gray-50 flex">
@@ -67,27 +81,68 @@ export default function AdminLayout({ children }) {
                     <div className="flex-1"></div>
 
                     <div className="flex items-center space-x-4">
-                        <div className="text-right hidden sm:block">
-                            <p className="text-sm font-bold text-gray-900">{user?.name}</p>
-                            <p className="text-xs text-gray-500 font-medium uppercase tracking-widest">{user?.role}</p>
-                        </div>
-                        <div className="h-10 w-10 rounded-xl bg-primary-100 flex items-center justify-center text-primary-700 font-bold overflow-hidden border border-primary-200">
-                            {user?.profilePicture ? (
-                                <img
-                                    src={user.profilePicture.startsWith('http') ? user.profilePicture : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace('/api/v1', '')}${user.profilePicture}`}
-                                    alt="Admin"
-                                    className="h-full w-full object-cover"
-                                />
-                            ) : (
-                                user?.name?.charAt(0) || 'A'
+                        {/* Profile Dropdown */}
+                        <div className="relative" ref={profileMenuRef}>
+                            <button
+                                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                                className="flex items-center space-x-3 p-1.5 rounded-xl hover:bg-gray-50 transition-colors"
+                            >
+                                <div className="text-right hidden sm:block">
+                                    <p className="text-sm font-bold text-gray-900">{user?.name}</p>
+                                    <p className="text-xs text-gray-500 font-medium uppercase tracking-widest">{user?.role}</p>
+                                </div>
+                                <div className="h-10 w-10 rounded-xl bg-primary-100 flex items-center justify-center text-primary-700 font-bold overflow-hidden border border-primary-200">
+                                    {user?.profilePicture ? (
+                                        <img
+                                            src={user.profilePicture.startsWith('http') ? user.profilePicture : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace('/api/v1', '')}${user.profilePicture}`}
+                                            alt="Admin"
+                                            className="h-full w-full object-cover"
+                                        />
+                                    ) : (
+                                        user?.name?.charAt(0) || 'A'
+                                    )}
+                                </div>
+                                <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {showProfileMenu && (
+                                <div className="absolute right-0 mt-2 w-52 bg-white border border-gray-100 rounded-xl shadow-lg py-1 z-50">
+                                    <div className="px-4 py-2 border-b border-gray-100">
+                                        <p className="text-sm font-semibold text-gray-900 truncate">{user?.name}</p>
+                                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                                    </div>
+
+                                    <Link
+                                        to="/profile"
+                                        onClick={() => setShowProfileMenu(false)}
+                                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                    >
+                                        <User className="h-4 w-4 mr-2.5" /> My Profile
+                                    </Link>
+                                    <Link
+                                        to="/admin"
+                                        onClick={() => setShowProfileMenu(false)}
+                                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                    >
+                                        <BarChart2 className="h-4 w-4 mr-2.5" /> Dashboard
+                                    </Link>
+                                    <Link
+                                        to="/"
+                                        onClick={() => setShowProfileMenu(false)}
+                                        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-100"
+                                    >
+                                        <Store className="h-4 w-4 mr-2.5" /> Back to Shop
+                                    </Link>
+
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full flex items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                    >
+                                        <LogOut className="h-4 w-4 mr-2.5" /> Sign Out
+                                    </button>
+                                </div>
                             )}
                         </div>
-                        <button
-                            onClick={handleLogout}
-                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all ml-2"
-                        >
-                            <LogOut className="h-5 w-5" />
-                        </button>
                     </div>
                 </header>
 
