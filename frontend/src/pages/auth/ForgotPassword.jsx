@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../../components/common/Button'
 import { Input } from '../../components/common/Input'
 import API from '../../services/api'
-import toast from 'react-hot-toast'
+import { toast } from 'react-hot-toast'
 import { useState } from 'react'
 
 export default function ForgotPassword() {

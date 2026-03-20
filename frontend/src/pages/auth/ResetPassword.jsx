@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import API from '../../services/api'
 import { Button } from '../../components/common/Button'
 import { Input } from '../../components/common/Input'
-import toast from 'react-hot-toast'
+import { toast } from 'react-hot-toast'
 
 export default function ResetPassword() {
     const navigate = useNavigate()

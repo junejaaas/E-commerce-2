@@ -151,6 +151,30 @@ const reOrder = async (orderId, userId) => {
     return await cartService.getCart(userId);
 };
 
+const refundOrder = async (orderId) => {
+    const order = await Order.findById(orderId);
+    if (!order) {
+        throw new AppError("Order not found", 404);
+    }
+
+    if (order.paymentStatus !== 'paid') {
+        throw new AppError('Only paid orders can be refunded', 400);
+    }
+
+    // Restore stock
+    for (const item of order.items) {
+        await Product.findByIdAndUpdate(item.product, {
+            $inc: { stock: item.quantity, sold: -item.quantity }
+        });
+    }
+
+    order.paymentStatus = 'refunded';
+    order.orderStatus = 'cancelled';
+    await order.save();
+
+    return order;
+};
+
 module.exports = {
     createOrder,
     getOrders,
@@ -159,5 +183,6 @@ module.exports = {
     reOrder,
     getAllOrdersAdmin,
     getOrderByIdAdmin,
-    updateOrderStatus
+    updateOrderStatus,
+    refundOrder
 };

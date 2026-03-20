@@ -16,10 +16,19 @@ const productSchema = mongoose.Schema(
             type: String,
             required: [true, 'Please provide a product description'],
         },
-        price: {
+        originalPrice: {
             type: Number,
             required: [true, 'Please provide a product price'],
             min: [0, 'Price cannot be negative'],
+        },
+        discountedPrice: {
+            type: Number,
+            min: [0, 'Discounted price cannot be negative'],
+        },
+        discountPercentage: {
+            type: Number,
+            min: [0, 'Discount percentage cannot be below 0'],
+            max: [100, 'Discount percentage cannot exceed 100'],
         },
         stock: {
             type: Number,
@@ -72,7 +81,7 @@ const productSchema = mongoose.Schema(
             validate: {
                 validator: function(val) {
                     // This only works on CREATE, not UPDATE by default in Mongoose
-                    return val < this.price;
+                    return val < this.originalPrice; // Changed from this.price to this.originalPrice to avoid circular logic
                 },
                 message: 'Discount price ({VALUE}) should be below regular price'
             }
@@ -102,12 +111,16 @@ const productSchema = mongoose.Schema(
 
 // Indexes for performance
 productSchema.index({ name: 'text', description: 'text' }); // Text index for search
-productSchema.index({ price: 1 });
-//productSchema.index({ slug: 1 });
+productSchema.index({ originalPrice: 1 });
 productSchema.index({ category: 1 });
 productSchema.index({ brand: 1 });
 
 // Pre-save middleware to generate slug and SKU
+// Virtual for price (returns discountedPrice if exists, else originalPrice)
+productSchema.virtual('price').get(function () {
+    return this.discountedPrice || this.originalPrice;
+});
+
 productSchema.pre('save', function (next) {
     if (this.isModified('name')) {
         this.slug = this.name.toLowerCase().replace(/[^a-zA-Z0-9 ]/g, "").split(' ').join('-');

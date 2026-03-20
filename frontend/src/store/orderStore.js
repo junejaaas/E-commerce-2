@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import API from '../services/api'
-import toast from 'react-hot-toast'
+import { toast } from 'react-hot-toast'
 
 export const useOrderStore = create((set, get) => ({
     orders: [],
@@ -100,6 +100,46 @@ export const useOrderStore = create((set, get) => ({
             set({ loading: false })
             toast.error(error.message || 'Payment verification failed')
             return false
+        }
+    },
+
+    // Admin Actions
+    fetchAllOrdersAdmin: async () => {
+        set({ loading: true })
+        try {
+            const { data } = await API.get('/orders/admin')
+            set({ orders: data.orders || data, loading: false })
+        } catch (error) {
+            set({ loading: false })
+            toast.error(error.response?.data?.message || 'Failed to fetch all orders')
+        }
+    },
+
+    updateOrderStatusAdmin: async (orderId, status) => {
+        try {
+            const { data } = await API.patch(`/orders/admin/${orderId}`, { status })
+            set((state) => ({
+                orders: state.orders.map(o => o._id === orderId ? { ...o, orderStatus: status } : o)
+            }))
+            toast.success(`Order status updated to ${status}`)
+            return data
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to update order status')
+            return null
+        }
+    },
+
+    refundOrderAdmin: async (orderId) => {
+        try {
+            const { data } = await API.patch(`/orders/admin/${orderId}/refund`)
+            set((state) => ({
+                orders: state.orders.map(o => o._id === orderId ? { ...o, paymentStatus: 'refunded', orderStatus: 'cancelled' } : o)
+            }))
+            toast.success('Order refunded and cancelled')
+            return data
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to refund order')
+            return null
         }
     }
 }))

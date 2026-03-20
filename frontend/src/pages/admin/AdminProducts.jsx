@@ -44,6 +44,21 @@ export default function AdminProducts() {
         }
     }
 
+    const watchedOriginalPrice = watch('originalPrice')
+    const watchedDiscountPercentage = watch('discountPercentage')
+
+    // Auto-calculate discounted price when original price or percentage changes
+    useEffect(() => {
+        if (watchedOriginalPrice !== undefined && watchedDiscountPercentage !== undefined) {
+            const orig = Number(watchedOriginalPrice)
+            const perc = Number(watchedDiscountPercentage)
+            if (!isNaN(orig) && !isNaN(perc)) {
+                const disco = Math.round(orig * (1 - perc / 100))
+                setValue('discountedPrice', disco)
+            }
+        }
+    }, [watchedOriginalPrice, watchedDiscountPercentage, setValue])
+
     useEffect(() => {
         fetchProducts()
         fetchCategories()
@@ -85,17 +100,20 @@ export default function AdminProducts() {
 
             const { 
                 _id, id, sold, ratingsAverage, ratingsQuantity, createdAt, updatedAt, slug, __v,
-                imageUrl, // legacy field from previous versions
+                imageUrl, // legacy field
                 category, // we handle this separately
+                price, // virtual or legacy
+                discountPrice, // legacy
                 ...sanitizedData 
             } = data
 
             const productData = {
                 ...sanitizedData,
                 category: categoryId,
-                price: Number(data.price),
+                originalPrice: Number(data.originalPrice),
+                discountPercentage: Number(data.discountPercentage) || 0,
+                discountedPrice: Number(data.discountedPrice) || Number(data.originalPrice),
                 stock: Number(data.stock),
-                discountPrice: data.discountPrice !== "" ? Number(data.discountPrice) : 0,
                 // Filter out empty URL inputs
                 images: imageUrlInputs.filter(url => url.trim() !== ''),
                 // Parse comma-separated strings
@@ -195,14 +213,18 @@ export default function AdminProducts() {
             name: '',
             brand: '',
             category: '',
-            price: '',
+            originalPrice: '',
+            discountPercentage: 0,
+            discountedPrice: '',
             stock: '',
             sku: '',
-            discountPrice: '',
             description: '',
             status: 'active',
             tags: '',
-            variants: ''
+            variants: '',
+            isFeatured: false,
+            seoTitle: '',
+            seoDescription: ''
         })
     }
 
@@ -237,7 +259,10 @@ export default function AdminProducts() {
             ...product,
             category: product.category?._id || product.category,
             tags: Array.isArray(product.tags) ? product.tags.join(', ') : '',
-            variants: Array.isArray(product.variants) ? product.variants.join(', ') : ''
+            variants: Array.isArray(product.variants) ? product.variants.join(', ') : '',
+            originalPrice: product.originalPrice || product.price,
+            discountPercentage: product.discountPercentage || 0,
+            discountedPrice: product.discountedPrice || product.price
         })
         
         // Handle images
@@ -381,6 +406,7 @@ export default function AdminProducts() {
                                     </select>
                                 )}
                             </div>
+                            <Input label="SKU (Auto-generated if empty)" {...register('sku')} />
                         </div>
                         
                         {/* Media Upload Section */}
@@ -446,13 +472,25 @@ export default function AdminProducts() {
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <Input label="Price" type="number" {...register('price', { required: true })} />
-                            <Input label="Discount Price" type="number" {...register('discountPrice')} />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <Input label="Original Price" type="number" {...register('originalPrice', { required: true })} />
+                            <Input label="Discount %" type="number" {...register('discountPercentage')} />
+                            <Input label="Discounted Price" type="number" {...register('discountedPrice')} />
                         </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <Input label="SKU" {...register('sku', { required: true })} />
                             <Input label="Stock" type="number" {...register('stock', { required: true })} />
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                                <select
+                                    {...register('status')}
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                                >
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                    <option value="draft">Draft</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div className="bg-gray-50/50 p-8 rounded-3xl border border-gray-100 space-y-6">
@@ -467,20 +505,9 @@ export default function AdminProducts() {
                                 <Input label="SEO Meta Title" {...register('seoTitle')} placeholder="For search engines" />
                                 <Input label="SEO Meta Description" {...register('seoDescription')} placeholder="Short snippet for Google" />
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-xs">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-xs">
                                 <Input label="Tags (comma separated)" {...register('tags')} />
                                 <Input label="Variants (e.g. Red, Blue, XL)" {...register('variants')} />
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
-                                    <select
-                                        {...register('status')}
-                                        className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-primary-500 text-sm"
-                                    >
-                                        <option value="active">Active</option>
-                                        <option value="inactive">Inactive</option>
-                                        <option value="draft">Draft</option>
-                                    </select>
-                                </div>
                             </div>
                         </div>
 
@@ -513,7 +540,7 @@ export default function AdminProducts() {
                                 <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">Product / SKU</th>
                                 <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">Category</th>
                                 <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-widest text-center">Stats</th>
-                                <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">Price</th>
+                                <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">Pricing</th>
                                 <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">Stock</th>
                                 <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-widest text-center">Status</th>
                                 <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
@@ -522,7 +549,7 @@ export default function AdminProducts() {
                         <tbody className="divide-y divide-gray-50">
                             {filteredProducts.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" className="py-20 text-center">
+                                    <td colSpan="8" className="py-20 text-center">
                                         <AlertTriangle className="h-12 w-12 text-gray-200 mx-auto mb-4" />
                                         <p className="text-gray-400 font-medium uppercase tracking-widest text-xs">No products found</p>
                                     </td>
@@ -579,9 +606,16 @@ export default function AdminProducts() {
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col">
-                                                <span className="font-black text-primary-600">${product.price}</span>
-                                                {product.discountPrice > 0 && (
-                                                    <span className="text-[10px] text-red-500 font-bold line-through ml-0.5 opacity-50">Was ${product.discountPrice + product.price}</span>
+                                                <span className={`font-black ${(product.discountedPrice && product.discountedPrice < (product.originalPrice || product.price)) ? 'text-gray-400 line-through text-xs' : 'text-primary-600'}`}>
+                                                    ${product.originalPrice || product.price}
+                                                </span>
+                                                {product.discountedPrice && product.discountedPrice < (product.originalPrice || product.price) && (
+                                                    <span className="font-black text-primary-600">
+                                                        ${product.discountedPrice}
+                                                        {product.discountPercentage > 0 && (
+                                                            <span className="ml-2 text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded-md">-{product.discountPercentage}%</span>
+                                                        )}
+                                                    </span>
                                                 )}
                                             </div>
                                         </td>
