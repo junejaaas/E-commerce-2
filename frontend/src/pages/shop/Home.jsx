@@ -1,12 +1,16 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useProductStore } from '../../store/productStore'
 import ProductCard from '../../components/product/ProductCard'
-import { ArrowRight, Truck, ShieldCheck, Clock, Search, Filter, X, Star, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, SlidersHorizontal, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { Button } from '../../components/common/Button'
 import { ProductCardSkeleton } from '../../components/common/Skeleton'
 import EmptyState from '../../components/common/EmptyState'
+<<<<<<< HEAD
 import { useAnalytics } from '../../hooks/useAnalytics'
+=======
+import { Star } from 'lucide-react'
+import { Button } from '../../components/common/Button'
+>>>>>>> c48b1728a76223131a53f543a169e98215de78f8
 
 export default function Home() {
     const {
@@ -21,9 +25,12 @@ export default function Home() {
         clearFilters
     } = useProductStore()
 
+<<<<<<< HEAD
     useAnalytics('home')
 
     const [searchTerm, setSearchTerm] = useState(filters.search || '')
+=======
+>>>>>>> c48b1728a76223131a53f543a169e98215de78f8
     const [showFilters, setShowFilters] = useState(false)
 
     useEffect(() => {
@@ -31,225 +38,238 @@ export default function Home() {
         fetchProducts()
     }, [])
 
-    // Sync products when filters change (except search which is debounced)
     useEffect(() => {
         fetchProducts()
-    }, [filters.category, filters.sort, filters.minPrice, filters.maxPrice, filters.ratingsAverage, filters.availability, filters.brand, filters.page])
-
-    // Debounced search
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (searchTerm !== filters.search) {
-                setFilters({ search: searchTerm, page: 1 })
-            }
-        }, 500)
-        return () => clearTimeout(timer)
-    }, [searchTerm])
+    }, [filters.category, filters.sort, filters.minPrice, filters.maxPrice, filters.ratingsAverage, filters.page, filters.search])
 
     const handleFilterChange = (key, value) => {
         setFilters({ [key]: value, page: 1 })
-    }
-
-    const scrollToProducts = () => {
-        document.getElementById('all-products')?.scrollIntoView({ behavior: 'smooth' })
+        if (key === 'category') {
+            setTimeout(() => {
+                document.getElementById('all-products')?.scrollIntoView({ behavior: 'smooth' })
+            }, 50)
+        }
     }
 
     return (
-        <div className="space-y-16 pb-20">
-            {/* Hero Section */}
-            <section className="relative bg-primary-900 h-[600px] overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary-950 to-transparent z-10" />
-                <img
-                    src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2426&q=80"
-                    className="absolute inset-0 w-full h-full object-cover opacity-50"
-                    alt="Banner"
-                />
-                <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center text-white">
-                    <h1 className="text-5xl md:text-7xl font-black max-w-2xl leading-tight mb-6">
-                        Future of Tech <br />
-                        <span className="text-primary-400">Right Now.</span>
-                    </h1>
-                    <p className="text-xl text-gray-300 max-w-xl mb-10">
-                        Discover the most innovative products designed to elevate your lifestyle. Quality guaranteed.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 max-w-2xl">
-                        <div className="relative flex-1">
-                            <input
-                                type="text"
-                                placeholder="Search for products..."
-                                className="w-full pl-12 pr-4 py-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && scrollToProducts()}
-                            />
-                            <Search className="absolute left-4 top-4.5 h-6 w-6 text-white/60" />
-                        </div>
-                        <Button 
-                            className="h-14 px-8 rounded-2xl font-bold text-lg"
-                            onClick={scrollToProducts}
+        <div className="min-h-screen bg-white">
+            {/* Category Nav Strip */}
+            <div className="border-b border-gray-200 bg-white sticky top-16 z-40">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-center gap-1 overflow-x-auto scrollbar-hide py-3">
+                        <button
+                            onClick={() => handleFilterChange('category', '')}
+                            className={`whitespace-nowrap px-4 py-1.5 text-sm font-semibold transition-all rounded-none border-b-2 ${
+                                !filters.category
+                                    ? 'border-black text-black'
+                                    : 'border-transparent text-gray-600 hover:text-black hover:border-gray-300'
+                            }`}
                         >
-                            Search
-                        </Button>
+                            All Products
+                        </button>
+                        {categories.map(cat => (
+                            <button
+                                key={cat._id || cat}
+                                onClick={() => handleFilterChange('category', cat.name || cat)}
+                                className={`whitespace-nowrap px-4 py-1.5 text-sm font-semibold transition-all rounded-none border-b-2 ${
+                                    filters.category === (cat.name || cat)
+                                        ? 'border-black text-black'
+                                        : 'border-transparent text-gray-600 hover:text-black hover:border-gray-300'
+                                }`}
+                            >
+                                {cat.name || cat}
+                            </button>
+                        ))}
                     </div>
                 </div>
-            </section>
+            </div>
 
-            {/* Features */}
-            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex items-start space-x-4">
-                        <div className="bg-primary-100 p-3 rounded-xl text-primary-600">
-                            <Truck className="h-6 w-6" />
+            {/* Hero Banner */}
+            <div className="relative w-full overflow-hidden" style={{ height: '480px' }}>
+                <img
+                    src="/hero-banner.png"
+                    alt="Summer Collection"
+                    className="w-full h-full object-cover object-center"
+                    onError={(e) => {
+                        // fallback to a gradient if image fails
+                        e.target.style.display = 'none'
+                    }}
+                />
+                {/* Overlay text for fallback */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black"
+                    style={{ display: 'none' }}
+                    id="hero-fallback"
+                >
+                    <div className="text-center px-4">
+                        <div className="text-[12vw] font-black leading-none text-white tracking-tighter uppercase mb-4">
+                            NEW<br /><span className="text-[#ff1cf7]">ARRIVALS</span>
                         </div>
-                        <div>
-                            <h3 className="font-bold text-lg">Fast Delivery</h3>
-                            <p className="text-gray-500 text-sm">Free shipping on all orders over $100</p>
-                        </div>
-                    </div>
-                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex items-start space-x-4">
-                        <div className="bg-primary-100 p-3 rounded-xl text-primary-600">
-                            <ShieldCheck className="h-6 w-6" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-lg">Secure Payments</h3>
-                            <p className="text-gray-500 text-sm">100% secure payment methods</p>
-                        </div>
-                    </div>
-                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex items-start space-x-4">
-                        <div className="bg-primary-100 p-3 rounded-xl text-primary-600">
-                            <Clock className="h-6 w-6" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-lg">24/7 Support</h3>
-                            <p className="text-gray-500 text-sm">Dedicated support for all customers</p>
-                        </div>
+                        <p className="text-gray-300 text-xl font-medium tracking-widest uppercase mb-8">Shop the latest collection</p>
+                        <button
+                            onClick={() => document.getElementById('all-products')?.scrollIntoView({ behavior: 'smooth' })}
+                            className="bg-white text-black font-black px-10 py-4 text-sm tracking-widest uppercase hover:bg-gray-100 transition-colors"
+                        >
+                            Shop Now
+                        </button>
                     </div>
                 </div>
-            </section>
+                {/* Shop Now CTA overlay */}
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+                    <button
+                        onClick={() => document.getElementById('all-products')?.scrollIntoView({ behavior: 'smooth' })}
+                        className="bg-black text-white font-black px-10 py-3.5 text-sm tracking-widest uppercase hover:bg-gray-800 transition-colors shadow-xl"
+                    >
+                        SHOP NOW
+                    </button>
+                </div>
+            </div>
 
-            {/* All Products Section */}
-            <section id="all-products" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+            {/* Products Section */}
+            <section id="all-products" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                {/* Section Header */}
+                <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h2 className="text-4xl font-black text-gray-900 mb-2">Our Collection</h2>
-                        <div className="h-1.5 w-24 bg-primary-600 rounded-full" />
-                        <p className="text-gray-500 mt-4 font-medium">Showing {products.length} stunning products</p>
+                        <h2 className="text-3xl font-black text-black uppercase tracking-tight">
+                            {filters.category || 'All Products'}
+                        </h2>
+                        <p className="text-gray-500 text-sm mt-1 font-medium">{products.length} items</p>
                     </div>
-                    
+
                     <div className="flex items-center gap-3">
                         <select
-                            className="px-4 py-2.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-primary-500 shadow-sm outline-none text-sm font-semibold"
+                            className="px-4 py-2.5 bg-white border border-gray-300 text-sm font-semibold focus:outline-none focus:border-black transition-colors"
                             onChange={(e) => handleFilterChange('sort', e.target.value)}
                             value={filters.sort}
                         >
-                            <option value="">Sort By: Default</option>
+                            <option value="">Sort: Featured</option>
                             <option value="price">Price: Low to High</option>
                             <option value="-price">Price: High to Low</option>
                             <option value="-ratingsAverage">Top Rated</option>
-                            <option value="-createdAt">Newest Arrival</option>
+                            <option value="-createdAt">Newest First</option>
                         </select>
-                        <button 
+
+                        <button
                             onClick={() => setShowFilters(!showFilters)}
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl border transition-all font-bold text-sm ${showFilters ? 'bg-primary-600 border-primary-600 text-white' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                            className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold border transition-all ${
+                                showFilters
+                                    ? 'bg-black text-white border-black'
+                                    : 'bg-white text-black border-gray-300 hover:border-black'
+                            }`}
                         >
-                            <Filter className="h-4 w-4" />
-                            {showFilters ? 'Hide Filters' : 'Show Filters'}
+                            <SlidersHorizontal className="h-4 w-4" />
+                            Filter
                         </button>
                     </div>
                 </div>
 
-                <div className="flex flex-col lg:flex-row gap-10">
+                <div className="flex gap-8">
                     {/* Filters Sidebar */}
                     {showFilters && (
-                        <aside className="w-full lg:w-72 space-y-8 animate-in slide-in-from-left-5 duration-300">
-                            {/* Categories */}
-                            <div>
-                                <h3 className="font-bold text-sm uppercase tracking-wider text-gray-400 mb-4">Categories</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    <button
-                                        onClick={() => handleFilterChange('category', '')}
-                                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${!filters.category ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                                    >
-                                        All
+                        <aside className="w-64 flex-shrink-0">
+                            <div className="sticky top-20 space-y-8">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="font-black text-sm uppercase tracking-widest">Filters</h3>
+                                    <button onClick={() => setShowFilters(false)} className="p-1 hover:bg-gray-100 rounded">
+                                        <X className="h-4 w-4" />
                                     </button>
-                                    {categories.map(cat => (
+                                </div>
+
+                                {/* Categories */}
+                                <div>
+                                    <h4 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Category</h4>
+                                    <div className="space-y-1">
                                         <button
-                                            key={cat._id || cat}
-                                            onClick={() => handleFilterChange('category', cat.name || cat)}
-                                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filters.category === (cat.name || cat) ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                            onClick={() => handleFilterChange('category', '')}
+                                            className={`w-full text-left px-0 py-1.5 text-sm font-medium border-b border-transparent transition-all ${
+                                                !filters.category ? 'text-black font-bold' : 'text-gray-500 hover:text-black'
+                                            }`}
                                         >
-                                            {cat.name || cat}
+                                            All
                                         </button>
-                                    ))}
+                                        {categories.map(cat => (
+                                            <button
+                                                key={cat._id || cat}
+                                                onClick={() => handleFilterChange('category', cat.name || cat)}
+                                                className={`w-full text-left px-0 py-1.5 text-sm font-medium transition-all ${
+                                                    filters.category === (cat.name || cat)
+                                                        ? 'text-black font-bold'
+                                                        : 'text-gray-500 hover:text-black'
+                                                }`}
+                                            >
+                                                {cat.name || cat}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Price */}
-                            <div>
-                                <h3 className="font-bold text-sm uppercase tracking-wider text-gray-400 mb-4">Price Range</h3>
-                                <div className="flex items-center gap-2">
-                                    <input 
-                                        type="number" 
-                                        placeholder="Min"
-                                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={filters.minPrice}
-                                        onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-                                    />
-                                    <input 
-                                        type="number" 
-                                        placeholder="Max"
-                                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500"
-                                        value={filters.maxPrice}
-                                        onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                                    />
+                                {/* Price Range */}
+                                <div>
+                                    <h4 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Price Range</h4>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            placeholder="Min"
+                                            className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:border-black"
+                                            value={filters.minPrice}
+                                            onChange={(e) => handleFilterChange('minPrice', e.target.value)}
+                                        />
+                                        <span className="text-gray-400">—</span>
+                                        <input
+                                            type="number"
+                                            placeholder="Max"
+                                            className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:border-black"
+                                            value={filters.maxPrice}
+                                            onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Rating */}
-                            <div>
-                                <h3 className="font-bold text-sm uppercase tracking-wider text-gray-400 mb-4">Min Rating</h3>
-                                <div className="flex gap-1">
-                                    {[1, 2, 3, 4, 5].map(star => (
-                                        <button
-                                            key={star}
-                                            onClick={() => handleFilterChange('ratingsAverage', star)}
-                                            className={`p-2 rounded-lg transition-all ${filters.ratingsAverage >= star ? 'text-yellow-400' : 'text-gray-300'}`}
-                                        >
-                                            <Star className={`h-6 w-6 ${filters.ratingsAverage >= star ? 'fill-current' : ''}`} />
-                                        </button>
-                                    ))}
+                                {/* Rating */}
+                                <div>
+                                    <h4 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Min Rating</h4>
+                                    <div className="flex gap-1">
+                                        {[1, 2, 3, 4, 5].map(star => (
+                                            <button
+                                                key={star}
+                                                onClick={() => handleFilterChange('ratingsAverage', star)}
+                                                className={`p-1 transition-all ${filters.ratingsAverage >= star ? 'text-yellow-400' : 'text-gray-300'}`}
+                                            >
+                                                <Star className={`h-5 w-5 ${filters.ratingsAverage >= star ? 'fill-current' : ''}`} />
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <Button 
-                                variant="ghost" 
-                                className="w-full rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 hover:text-red-600"
-                                onClick={clearFilters}
-                            >
-                                Reset All Filters
-                            </Button>
+                                <button
+                                    onClick={clearFilters}
+                                    className="w-full py-2 text-xs font-black uppercase tracking-widest text-red-500 border border-red-200 hover:bg-red-50 transition-colors"
+                                >
+                                    Reset Filters
+                                </button>
+                            </div>
                         </aside>
                     )}
 
+                    {/* Products Grid */}
                     <div className="flex-1">
                         {loading ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {[...Array(6)].map((_, i) => (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {[...Array(8)].map((_, i) => (
                                     <ProductCardSkeleton key={i} />
                                 ))}
                             </div>
                         ) : (
-                            <div className="space-y-12">
+                            <div className="space-y-10">
                                 {products.length === 0 ? (
                                     <EmptyState
                                         title="No products found"
-                                        description="Try adjusting your filters or search terms to find what you're looking for."
+                                        description="Try adjusting your filters to find what you're looking for."
                                         actionLabel="Clear all filters"
                                         onAction={clearFilters}
                                     />
                                 ) : (
                                     <>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                                        <div className={`grid gap-4 ${showFilters ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'}`}>
                                             {products.map(product => (
                                                 <ProductCard key={product._id} product={product} />
                                             ))}
@@ -257,20 +277,24 @@ export default function Home() {
 
                                         {/* Pagination */}
                                         {totalPages > 1 && (
-                                            <div className="flex justify-center items-center gap-3 pt-10 border-t border-gray-100">
+                                            <div className="flex justify-center items-center gap-2 pt-10 border-t border-gray-100">
                                                 <button
                                                     disabled={filters.page === 1}
                                                     onClick={() => setFilters({ page: filters.page - 1 })}
-                                                    className="p-3 rounded-2xl border border-gray-200 disabled:opacity-50 hover:bg-gray-50 transition-colors"
+                                                    className="p-2.5 border border-gray-300 disabled:opacity-40 hover:border-black transition-colors"
                                                 >
-                                                    <ChevronLeft className="h-5 w-5" />
+                                                    <ChevronLeft className="h-4 w-4" />
                                                 </button>
-                                                
+
                                                 {[...Array(totalPages)].map((_, i) => (
                                                     <button
                                                         key={i}
                                                         onClick={() => setFilters({ page: i + 1 })}
-                                                        className={`w-12 h-12 rounded-2xl font-black transition-all ${filters.page === i + 1 ? 'bg-primary-600 text-white shadow-xl shadow-primary-200 scale-110' : 'bg-white text-gray-600 hover:bg-gray-100 border border-transparent'}`}
+                                                        className={`w-10 h-10 text-sm font-bold transition-all ${
+                                                            filters.page === i + 1
+                                                                ? 'bg-black text-white'
+                                                                : 'bg-white text-gray-600 border border-gray-200 hover:border-black'
+                                                        }`}
                                                     >
                                                         {i + 1}
                                                     </button>
@@ -279,9 +303,9 @@ export default function Home() {
                                                 <button
                                                     disabled={filters.page === totalPages}
                                                     onClick={() => setFilters({ page: filters.page + 1 })}
-                                                    className="p-3 rounded-2xl border border-gray-200 disabled:opacity-50 hover:bg-gray-50 transition-colors"
+                                                    className="p-2.5 border border-gray-300 disabled:opacity-40 hover:border-black transition-colors"
                                                 >
-                                                    <ChevronRight className="h-5 w-5" />
+                                                    <ChevronRight className="h-4 w-4" />
                                                 </button>
                                             </div>
                                         )}
