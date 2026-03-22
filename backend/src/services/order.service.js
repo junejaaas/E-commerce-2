@@ -3,6 +3,8 @@ const Product = require('../models/product.model');
 const cartService = require('./cart.service');
 const checkoutService = require('./checkout.service');
 const paymentService = require('./payment.service');
+const emailService = require('./email.service');
+const bcrypt = require('bcryptjs');
 const AppError = require('../utils/AppError');
 
 const { createNotification } = require('../controllers/notification.controller');
@@ -122,6 +124,34 @@ const updateOrderStatus = async (orderId, status, paymentStatus, deliveryAgent, 
 
     if (!order) {
         throw new AppError("Order not found", 404);
+    }
+
+    // Generate Delivery OTP when status transitions to shipped
+    if (status === 'shipped' && order.orderStatus !== 'shipped') {
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        order.deliveryOTP = await bcrypt.hash(otp, 12);
+        order.otpGeneratedAt = new Date();
+        order.otpVerified = false;
+        order.otpAttempts = 0;
+        
+        // Fetch user email to send OTP
+        const User = require('../models/user.model');
+        const user = await User.findById(order.user);
+        
+        if (user && user.email) {
+            const subject = "Your Delivery OTP";
+            const text = `Your delivery OTP is: ${otp}. Please provide this OTP to the delivery agent at the time of delivery.`;
+            const html = `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                    <h2>Delivery Update</h2>
+                    <p>Your order is out for delivery!</p>
+                    <p>Your delivery OTP is: <strong style="font-size: 24px; letter-spacing: 2px;">${otp}</strong></p>
+                    <p>Please provide this OTP to the delivery agent at the time of delivery.</p>
+                </div>
+            `;
+            // Fire and forget email
+            emailService.sendEmail(user.email, subject, text, html).catch(err => console.error('Failed to send OTP email', err));
+        }
     }
 
     // Update fields

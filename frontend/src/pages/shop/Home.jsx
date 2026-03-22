@@ -5,12 +5,8 @@ import { ChevronLeft, ChevronRight, SlidersHorizontal, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ProductCardSkeleton } from '../../components/common/Skeleton'
 import EmptyState from '../../components/common/EmptyState'
-<<<<<<< HEAD
-import { useAnalytics } from '../../hooks/useAnalytics'
-=======
 import { Star } from 'lucide-react'
 import { Button } from '../../components/common/Button'
->>>>>>> c48b1728a76223131a53f543a169e98215de78f8
 
 export default function Home() {
     const {
@@ -25,12 +21,7 @@ export default function Home() {
         clearFilters
     } = useProductStore()
 
-<<<<<<< HEAD
-    useAnalytics('home')
 
-    const [searchTerm, setSearchTerm] = useState(filters.search || '')
-=======
->>>>>>> c48b1728a76223131a53f543a169e98215de78f8
     const [showFilters, setShowFilters] = useState(false)
 
     useEffect(() => {

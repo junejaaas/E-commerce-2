@@ -27,6 +27,15 @@ const reviewSchema = mongoose.Schema(
             ref: 'User',
             required: [true, 'Review must belong to a user.'],
         },
+        status: {
+            type: String,
+            enum: ['pending', 'approved', 'rejected'],
+            default: 'pending',
+        },
+        isHighlighted: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         toJSON: { virtuals: true },

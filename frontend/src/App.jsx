@@ -46,14 +46,19 @@ import AdminCategories from './pages/admin/AdminCategories.jsx'
 import AdminOrders from './pages/admin/AdminOrders.jsx'
 import SupportPanel from './pages/admin/SupportPanel.jsx'
 import SupportTicketDetails from './pages/admin/SupportTicketDetails.jsx'
+import AdminCustomers from './pages/admin/AdminCustomers.jsx'
+import AdminCustomerDetail from './pages/admin/AdminCustomerDetail.jsx'
+import AdminReviews from './pages/admin/AdminReviews.jsx'
 
 // Delivery Pages
 import DeliveryDashboard from './pages/delivery/DeliveryDashboard.jsx'
+import DeliveryResetPassword from './pages/delivery/DeliveryResetPassword.jsx'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
     const { token, user } = useAuthStore()
     if (!token) return <Navigate to="/login" />
+    if (user && user.role === 'delivery' && user.mustResetPassword) return <Navigate to="/delivery/reset-password" />
     return children
 }
 
@@ -132,9 +137,25 @@ function App() {
                 <Route path="/admin/coupons" element={<AdminRoute><AdminLayout><AdminCoupons /></AdminLayout></AdminRoute>} />
                 <Route path="/admin/notifications" element={<AdminRoute><AdminLayout><AdminNotifications /></AdminLayout></AdminRoute>} />
                 <Route path="/admin/agents" element={<AdminRoute><AdminLayout><AdminAgents /></AdminLayout></AdminRoute>} />
+                <Route path="/admin/customers" element={<AdminRoute><AdminLayout><AdminCustomers /></AdminLayout></AdminRoute>} />
+                <Route path="/admin/customers/:id" element={<AdminRoute><AdminLayout><AdminCustomerDetail /></AdminLayout></AdminRoute>} />
+                <Route path="/admin/reviews" element={<AdminRoute><AdminLayout><AdminReviews /></AdminLayout></AdminRoute>} />
 
                 {/* Delivery Routes */}
-                <Route path="/delivery" element={<DeliveryRoute><DeliveryLayout><DeliveryDashboard /></DeliveryLayout></DeliveryRoute>} />
+                <Route path="/delivery" element={
+                    <DeliveryRoute>
+                        {user?.role === 'delivery' && user?.mustResetPassword ? (
+                            <Navigate to="/delivery/reset-password" replace />
+                        ) : (
+                            <DeliveryLayout><DeliveryDashboard /></DeliveryLayout>
+                        )}
+                    </DeliveryRoute>
+                } />
+                <Route path="/delivery/reset-password" element={
+                    <DeliveryRoute>
+                        <DeliveryResetPassword />
+                    </DeliveryRoute>
+                } />
             </Routes>
         </Router>
     )

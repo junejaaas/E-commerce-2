@@ -37,6 +37,8 @@ const couponRoutes = require('./routes/coupon.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const deliveryRoutes = require('./routes/delivery.routes');
 const agentRoutes = require('./routes/agent.routes');
+const customerRoutes = require('./routes/customer.routes');
+const adminReviewRoutes = require('./routes/adminReview.routes');
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
@@ -57,6 +59,8 @@ app.use('/api/v1/coupons', couponRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/delivery', deliveryRoutes);
 app.use('/api/v1/admin/agents', agentRoutes);
+app.use('/api/v1/admin/customers', customerRoutes);
+app.use('/api/v1/admin/reviews', adminReviewRoutes);
 
 app.get('/api/v1/health', (req, res) => {
     res.status(200).json({

@@ -37,7 +37,8 @@ const createAgent = catchAsync(async (req, res) => {
         password,
         phoneNumber,
         role: 'delivery',
-        isEmailVerified: true // Admin created agents can be pre-verified
+        isEmailVerified: true, // Admin created agents can be pre-verified
+        mustResetPassword: true
     });
 
     // Remove password from output

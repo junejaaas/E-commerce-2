@@ -60,6 +60,14 @@ const userSchema = new mongoose.Schema({
         default: true,
         select: false,
     },
+    isBlocked: {
+        type: Boolean,
+        default: false,
+    },
+    mustResetPassword: {
+        type: Boolean,
+        default: false,
+    },
     totalEarnings: { type: Number, default: 0 },
     totalDeliveries: { type: Number, default: 0 },
 }, {

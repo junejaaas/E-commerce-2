@@ -8,6 +8,9 @@ router.use(authMiddleware.protect);
 
 router.get('/checkout', orderController.getCheckoutSession);
 
+// DELIVERY & ADMIN
+router.post('/verify-delivery-otp', authMiddleware.authorize('delivery', 'admin'), orderController.verifyDeliveryOTP);
+
 // ADMIN
 router.get("/admin", authMiddleware.authorize('admin'), orderController.getAllOrdersAdmin);
 router.get("/admin/:orderId", authMiddleware.authorize('admin'), orderController.getOrderAdmin);

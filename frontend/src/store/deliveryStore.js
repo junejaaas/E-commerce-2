@@ -55,5 +55,21 @@ export const useDeliveryStore = create((set, get) => ({
             toast.error(error.response?.data?.message || 'Failed to update delivery status')
             return null
         }
+    },
+
+    verifyDeliveryOTP: async (orderId, otp, paymentStatus, collectedAmount) => {
+        try {
+            const { data } = await API.post(`/orders/verify-delivery-otp`, { orderId, otp, paymentStatus, collectedAmount })
+            
+            // Remove from list if delivered
+            set((state) => ({
+                orders: state.orders.filter(o => o._id !== orderId)
+            }))
+            toast.success('OTP Verified! Order marked as Delivered.')
+            return data
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Invalid OTP or failed to verify')
+            return null
+        }
     }
 }))

@@ -17,7 +17,8 @@ const createReview = async (userId, productId, body) => {
 };
 
 const getReviews = async (productId) => {
-    const reviews = await Review.find({ product: productId }).sort('-createdAt');
+    const reviews = await Review.find({ product: productId, status: 'approved' })
+        .sort({ isHighlighted: -1, createdAt: -1 });
     return reviews;
 };
 

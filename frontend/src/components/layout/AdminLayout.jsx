@@ -3,7 +3,8 @@ import { useAuthStore } from '../../store/authStore'
 import { useNotificationStore } from '../../store/notificationStore'
 import { 
     LayoutDashboard, Package, ShoppingCart, MessageSquare, LogOut, Menu, 
-    BarChart2, User, Store, ChevronDown, Ticket, LayoutGrid, Users 
+    BarChart2, User, Store, ChevronDown, Ticket, LayoutGrid, Users,
+    UserCheck, Star
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import NotificationDropdown from '../notifications/NotificationDropdown'
@@ -33,6 +34,8 @@ export default function AdminLayout({ children }) {
         { title: 'Support', path: '/admin/support', icon: <MessageSquare className="h-5 w-5" /> },
         { title: 'Coupons', path: '/admin/coupons', icon: <Ticket className="h-5 w-5" /> },
         { title: 'Delivery Fleet', path: '/admin/agents', icon: <Users className="h-5 w-5" /> },
+        { title: 'Customers', path: '/admin/customers', icon: <UserCheck className="h-5 w-5" /> },
+        { title: 'Reviews', path: '/admin/reviews', icon: <Star className="h-5 w-5" /> },
     ]
 
     const handleLogout = () => {

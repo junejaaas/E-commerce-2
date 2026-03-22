@@ -20,6 +20,7 @@ export default function DeliveryDashboard() {
     const [historyRange, setHistoryRange] = useState('today');
     const [searchTerm, setSearchTerm] = useState('');
     const [collectedAmounts, setCollectedAmounts] = useState({});
+    const [otps, setOtps] = useState({});
 
     useEffect(() => {
         fetchAvailableOrders();
@@ -40,6 +41,24 @@ export default function DeliveryDashboard() {
             ...prev,
             [orderId]: value
         }));
+    };
+
+    const handleOtpChange = (orderId, value) => {
+        setOtps(prev => ({ ...prev, [orderId]: value }));
+    };
+
+    const handleVerifyOtp = async (orderId, paymentStatus, amount) => {
+        const otp = otps[orderId];
+        if (!otp || otp.length !== 6) {
+            import('react-hot-toast').then(({ toast }) => toast.error('Please enter a valid 6-digit OTP'));
+            return;
+        }
+        
+        const success = await useDeliveryStore.getState().verifyDeliveryOTP(orderId, otp, paymentStatus, amount);
+        if (success) {
+            fetchMe();
+            fetchDeliveryHistory(historyRange);
+        }
     };
 
     const filteredOrders = (activeTab === 'orders' ? orders : deliveryHistory || []).filter(o => 
@@ -298,17 +317,27 @@ export default function DeliveryDashboard() {
                                                     )}
 
                                                     {order.orderStatus === 'shipped' && (
-                                                        <button 
-                                                            onClick={() => {
-                                                                if (window.confirm('Confirm Delivery and Payment?')) {
-                                                                    const amount = collectedAmounts[order._id] || order.totalAmount;
-                                                                    handleUpdateStatus(order._id, 'delivered', 'paid', amount)
-                                                                }
-                                                            }}
-                                                            className="w-full py-4 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-black transition-all shadow-xl shadow-gray-200 flex items-center justify-center gap-2"
-                                                        >
-                                                            <CheckCircle className="h-4 w-4" /> Complete Delivery
-                                                        </button>
+                                                        <div className="space-y-2">
+                                                            <input
+                                                                type="text"
+                                                                maxLength="6"
+                                                                placeholder="Enter 6-digit Delivery OTP"
+                                                                className="w-full px-3 py-3 bg-primary-50 border-2 border-primary-100 focus:border-primary-500 rounded-xl outline-none font-black text-center text-lg tracking-[0.5em] transition-all text-primary-900 placeholder:text-primary-300 placeholder:tracking-normal placeholder:text-sm"
+                                                                value={otps[order._id] || ''}
+                                                                onChange={(e) => handleOtpChange(order._id, e.target.value.replace(/\D/g, ''))}
+                                                            />
+                                                            <button 
+                                                                onClick={() => {
+                                                                    if (window.confirm('Confirm Delivery and Payment?')) {
+                                                                        const amount = collectedAmounts[order._id] || order.totalAmount;
+                                                                        handleVerifyOtp(order._id, 'paid', amount)
+                                                                    }
+                                                                }}
+                                                                className="w-full py-4 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-black transition-all shadow-xl shadow-gray-200 flex items-center justify-center gap-2"
+                                                            >
+                                                                <CheckCircle className="h-4 w-4" /> Verify & Complete
+                                                            </button>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>

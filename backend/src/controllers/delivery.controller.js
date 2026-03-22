@@ -1,4 +1,5 @@
 const Order = require('../models/order.model');
+const User = require('../models/user.model');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
 const orderService = require('../services/order.service');
@@ -39,8 +40,8 @@ const updateDeliveryStatus = catchAsync(async (req, res) => {
     if (status === 'shipped' && orderToUpdate.orderStatus !== 'picked') {
         throw new AppError('Order must be picked up before it can be marked as Out for Delivery', 400);
     }
-    if (status === 'delivered' && orderToUpdate.orderStatus !== 'shipped') {
-        throw new AppError('Order must be Out for Delivery before it can be marked as Delivered', 400);
+    if (status === 'delivered') {
+        throw new AppError('Please use the OTP verification endpoint to mark orders as delivered', 400);
     }
 
     const order = await orderService.updateOrderStatus(orderId, status, paymentStatus, undefined, collectedAmount);
@@ -90,8 +91,36 @@ const getDeliveryHistory = catchAsync(async (req, res) => {
     });
 });
 
+/**
+ * Reset password for delivery agents
+ */
+const resetDeliveryPassword = catchAsync(async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+    
+    if (!oldPassword || !newPassword) {
+        throw new AppError('Please provide both old and new passwords', 400);
+    }
+    
+    // Get user with password explicitly
+    const user = await User.findById(req.user.id).select('+password');
+    
+    if (!(await user.correctPassword(oldPassword, user.password))) {
+        throw new AppError('Incorrect old password', 401);
+    }
+    
+    user.password = newPassword;
+    user.mustResetPassword = false;
+    await user.save();
+    
+    res.status(200).json({
+        status: 'success',
+        message: 'Password successfully updated'
+    });
+});
+
 module.exports = {
     getAvailableOrders,
     updateDeliveryStatus,
-    getDeliveryHistory
+    getDeliveryHistory,
+    resetDeliveryPassword
 };

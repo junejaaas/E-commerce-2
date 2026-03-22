@@ -3,6 +3,8 @@ const orderService = require('../services/order.service');
 const checkoutService = require('../services/checkout.service');
 const PDFDocument = require("pdfkit");
 const Order = require("../models/order.model");
+const AppError = require('../utils/AppError');
+const bcrypt = require('bcryptjs');
 
 // Checkout summary
 const getCheckoutSession = catchAsync(async (req, res) => {
@@ -170,6 +172,57 @@ const refundOrder = catchAsync(async (req, res) => {
     res.status(200).json(order);
 });
 
+// Verify Delivery OTP
+const verifyDeliveryOTP = catchAsync(async (req, res) => {
+    const { orderId, otp, paymentStatus, collectedAmount } = req.body;
+    
+    if (!orderId || !otp) {
+        throw new AppError('Please provide orderId and otp', 400);
+    }
+    
+    const order = await Order.findById(orderId).select('+deliveryOTP');
+    
+    if (!order) {
+        throw new AppError('Order not found', 404);
+    }
+    
+    if (order.orderStatus !== 'shipped') {
+        throw new AppError('Order is not currently out for delivery', 400);
+    }
+    
+    if (order.otpAttempts >= 5) {
+        throw new AppError('Maximum OTP attempts exceeded. Please contact support.', 403);
+    }
+    
+    const isCorrect = await bcrypt.compare(otp, order.deliveryOTP);
+    if (!isCorrect) {
+        order.otpAttempts += 1;
+        await order.save({ validateBeforeSave: false });
+        throw new AppError('Invalid OTP', 400);
+    }
+    
+    // Valid OTP
+    order.otpVerified = true;
+    order.deliveryOTP = undefined; // Invalidate OTP
+    await order.save({ validateBeforeSave: false });
+    
+    // Automatically update the main status to delivered
+    const updatedOrder = await orderService.updateOrderStatus(
+        orderId, 
+        'delivered', 
+        paymentStatus, 
+        req.user.id, // Agent ID
+        collectedAmount,
+        undefined
+    );
+    
+    res.status(200).json({
+        status: 'success',
+        message: 'OTP verified and order marked as delivered',
+        data: updatedOrder
+    });
+});
+
 module.exports = {
     getCheckoutSession,
     createOrder,
@@ -181,5 +234,6 @@ module.exports = {
     cancelOrder,
     reOrder,
     downloadInvoice,
-    refundOrder
+    refundOrder,
+    verifyDeliveryOTP
 };

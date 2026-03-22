@@ -6,6 +6,9 @@ const { protect, authorize } = require('../middlewares/auth.middleware');
 router.use(protect);
 router.use(authorize('delivery', 'admin'));
 
+// The reset password route specifically for delivery personnel
+router.patch('/reset-password', deliveryController.resetDeliveryPassword);
+
 router.get('/orders', deliveryController.getAvailableOrders);
 router.get('/history', deliveryController.getDeliveryHistory);
 router.patch('/orders/:orderId/status', deliveryController.updateDeliveryStatus);
