@@ -5,9 +5,12 @@ import { Trash2, Minus, Plus, ShoppingBag, ArrowRight } from 'lucide-react'
 import { Button } from '../../components/common/Button'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import EmptyState from '../../components/common/EmptyState'
+import { useAnalytics } from '../../hooks/useAnalytics'
 
 export default function Cart() {
     const { cart, fetchCart, updateQuantity, removeFromCart, clearCart, loading } = useCartStore()
+    
+    useAnalytics('cart')
 
     useEffect(() => {
         fetchCart()

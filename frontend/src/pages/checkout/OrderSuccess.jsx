@@ -3,9 +3,12 @@ import { useParams, Link } from 'react-router-dom'
 import { CheckCircle, Package, ArrowLeft, Download } from 'lucide-react'
 import API from '../../services/api'
 import { Button } from '../../components/common/Button'
+import { useAnalytics } from '../../hooks/useAnalytics'
 
 export default function OrderSuccess() {
     const { id } = useParams()
+    
+    useAnalytics('order-success', id)
     const [order, setOrder] = useState(null)
     const [loading, setLoading] = useState(true)
 

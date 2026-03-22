@@ -23,8 +23,9 @@ import Wishlist from './pages/wishlist/Wishlist.jsx'
 import Checkout from './pages/checkout/Checkout.jsx'
 import OrderSuccess from './pages/checkout/OrderSuccess.jsx'
 
-// Admin Layout
+// Admin & Delivery Layouts
 import AdminLayout from './components/layout/AdminLayout.jsx'
+import DeliveryLayout from './components/layout/DeliveryLayout.jsx'
 
 // Profile Pages
 import Profile from './pages/profile/Profile.jsx'
@@ -34,6 +35,8 @@ import ReturnRequest from './pages/orders/ReturnRequest.jsx'
 import Addresses from './pages/profile/Addresses.jsx'
 
 import AdminCoupons from './pages/admin/AdminCoupons.jsx'
+import AdminAgents from './pages/admin/AdminAgents.jsx'
+import AdminNotifications from './pages/admin/AdminNotifications.jsx'
 import SupportTickets from './pages/support/SupportTickets.jsx'
 import TicketDetails from './pages/support/TicketDetails.jsx'
 
@@ -43,6 +46,9 @@ import AdminCategories from './pages/admin/AdminCategories.jsx'
 import AdminOrders from './pages/admin/AdminOrders.jsx'
 import SupportPanel from './pages/admin/SupportPanel.jsx'
 import SupportTicketDetails from './pages/admin/SupportTicketDetails.jsx'
+
+// Delivery Pages
+import DeliveryDashboard from './pages/delivery/DeliveryDashboard.jsx'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -55,6 +61,13 @@ const AdminRoute = ({ children }) => {
     const { token, user } = useAuthStore()
     if (!token) return <Navigate to="/login" />
     if (user && user.role !== 'admin') return <Navigate to="/" />
+    return children
+}
+
+const DeliveryRoute = ({ children }) => {
+    const { token, user } = useAuthStore()
+    if (!token) return <Navigate to="/login" />
+    if (user && user.role !== 'delivery' && user.role !== 'admin') return <Navigate to="/" />
     return children
 }
 
@@ -86,7 +99,11 @@ function App() {
                 <Route path="/reset-password" element={<ResetPassword />} />
 
                 {/* Shop Routes */}
-                <Route path="/" element={user?.role === 'admin' ? <Navigate to="/admin" replace /> : <Layout><Home /></Layout>} />
+                <Route path="/" element={
+                    user?.role === 'admin' ? <Navigate to="/admin" replace /> : 
+                    user?.role === 'delivery' ? <Navigate to="/delivery" replace /> :
+                    <Layout><Home /></Layout>
+                } />
                 <Route path="/products" element={<Layout><ProductList /></Layout>} />
                 <Route path="/products/:id" element={<Layout><ProductDetail /></Layout>} />
                 <Route path="/cart" element={<ProtectedRoute><Layout><Cart /></Layout></ProtectedRoute>} />
@@ -113,6 +130,11 @@ function App() {
                 <Route path="/admin/support" element={<AdminRoute><AdminLayout><SupportPanel /></AdminLayout></AdminRoute>} />
                 <Route path="/admin/support/:id" element={<AdminRoute><AdminLayout><SupportTicketDetails /></AdminLayout></AdminRoute>} />
                 <Route path="/admin/coupons" element={<AdminRoute><AdminLayout><AdminCoupons /></AdminLayout></AdminRoute>} />
+                <Route path="/admin/notifications" element={<AdminRoute><AdminLayout><AdminNotifications /></AdminLayout></AdminRoute>} />
+                <Route path="/admin/agents" element={<AdminRoute><AdminLayout><AdminAgents /></AdminLayout></AdminRoute>} />
+
+                {/* Delivery Routes */}
+                <Route path="/delivery" element={<DeliveryRoute><DeliveryLayout><DeliveryDashboard /></DeliveryLayout></DeliveryRoute>} />
             </Routes>
         </Router>
     )

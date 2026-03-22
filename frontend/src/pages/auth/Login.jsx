@@ -24,6 +24,8 @@ export default function Login() {
       const { user } = useAuthStore.getState()
       if (user?.role === 'admin') {
         navigate('/admin')
+      } else if (user?.role === 'delivery') {
+        navigate('/delivery')
       } else {
         navigate('/')
       }

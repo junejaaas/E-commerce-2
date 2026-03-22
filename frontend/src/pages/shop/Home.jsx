@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom'
 import { Button } from '../../components/common/Button'
 import { ProductCardSkeleton } from '../../components/common/Skeleton'
 import EmptyState from '../../components/common/EmptyState'
+import { useAnalytics } from '../../hooks/useAnalytics'
 
 export default function Home() {
     const {
@@ -19,6 +20,8 @@ export default function Home() {
         setFilters,
         clearFilters
     } = useProductStore()
+
+    useAnalytics('home')
 
     const [searchTerm, setSearchTerm] = useState(filters.search || '')
     const [showFilters, setShowFilters] = useState(false)

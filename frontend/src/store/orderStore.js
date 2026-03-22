@@ -115,16 +115,40 @@ export const useOrderStore = create((set, get) => ({
         }
     },
 
-    updateOrderStatusAdmin: async (orderId, status) => {
+    updateOrderStatusAdmin: async (orderId, status, paymentStatus, deliveryAgent, collectedAmount, isSettled) => {
         try {
-            const { data } = await API.patch(`/orders/admin/${orderId}`, { status })
+            const { data } = await API.patch(`/orders/admin/${orderId}`, { 
+                status, 
+                paymentStatus, 
+                deliveryAgent,
+                collectedAmount,
+                isSettled 
+            })
             set((state) => ({
-                orders: state.orders.map(o => o._id === orderId ? { ...o, orderStatus: status } : o)
+                orders: state.orders.map(o => {
+                    if (o._id !== orderId) return o;
+                    
+                    const newStatus = status || o.orderStatus;
+                    const isCOD = o.paymentMethod?.toLowerCase().includes('cod') || o.paymentMethod?.toLowerCase().includes('cash');
+                    const newPaymentStatus = (newStatus === 'delivered' && isCOD) ? 'paid' : (paymentStatus || o.paymentStatus);
+
+                    return { 
+                        ...o, 
+                        orderStatus: newStatus,
+                        paymentStatus: newPaymentStatus,
+                        deliveryAgent: deliveryAgent || o.deliveryAgent,
+                        collectedAmount: collectedAmount !== undefined ? collectedAmount : o.collectedAmount,
+                        isSettled: isSettled !== undefined ? isSettled : o.isSettled
+                    };
+                })
             }))
-            toast.success(`Order status updated to ${status}`)
+            if (status) toast.success(`Order status updated to ${status}`)
+            if (paymentStatus) toast.success(`Payment status updated to ${paymentStatus}`)
+            if (deliveryAgent) toast.success(`Delivery agent assigned`)
+            if (isSettled) toast.success(`Cash settlement completed`)
             return data
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to update order status')
+            toast.error(error.response?.data?.message || 'Failed to update order')
             return null
         }
     },

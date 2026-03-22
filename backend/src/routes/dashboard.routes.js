@@ -4,7 +4,10 @@ const dashboardController = require('../controllers/dashboard.controller');
 
 const router = express.Router();
 
-// Only admins can access dashboard endpoints
+// Tracking endpoint (publicly accessible)
+router.post('/track', dashboardController.trackVisit);
+
+// Only admins can access dashboard statistics
 router.use(authMiddleware.protect);
 router.use(authMiddleware.authorize('admin'));
 

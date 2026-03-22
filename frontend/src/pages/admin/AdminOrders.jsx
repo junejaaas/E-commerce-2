@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import API from '../../services/api'
 import { useOrderStore } from '../../store/orderStore'
 import { 
     Package, Search, ChevronDown, CheckCircle, Clock, Truck, 
@@ -14,10 +15,21 @@ export default function AdminOrders() {
     const [filter, setFilter] = useState('all')
     const [selectedOrder, setSelectedOrder] = useState(null)
     const [showDetails, setShowDetails] = useState(false)
+    const [agents, setAgents] = useState([])
 
     useEffect(() => {
         fetchAllOrdersAdmin()
+        fetchAgents()
     }, [])
+
+    const fetchAgents = async () => {
+        try {
+            const { data } = await API.get('/admin/agents')
+            setAgents(data.data || [])
+        } catch (error) {
+            console.error('Failed to fetch agents', error)
+        }
+    }
 
     const getStatusConfig = (status) => {
         switch (status) {
@@ -118,6 +130,7 @@ export default function AdminOrders() {
                                 <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">Items & Total</th>
                                 <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">Payment</th>
                                 <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">Status</th>
+                                <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">Delivery Agent</th>
                                 <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-gray-400 border-b border-gray-100 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -140,14 +153,28 @@ export default function AdminOrders() {
                                                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{order.items.length} items</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-6">
-                                            <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                                                order.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                                                order.paymentStatus === 'refunded' ? 'bg-blue-50 text-blue-700 border-blue-100' :
-                                                'bg-amber-50 text-amber-700 border-amber-100'
-                                            }`}>
-                                                {order.paymentStatus}
-                                            </span>
+                                        <td className="px-6 py-6 font-medium">
+                                            <div className="relative w-max">
+                                                <select
+                                                    value={order.paymentStatus}
+                                                    onChange={(e) => updateOrderStatusAdmin(order._id, null, e.target.value)}
+                                                    className={`appearance-none pl-3 pr-8 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest outline-none border transition-all cursor-pointer ${
+                                                        order.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                                                        order.paymentStatus === 'refunded' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                                                        'bg-amber-50 text-amber-700 border-amber-100'
+                                                    }`}
+                                                >
+                                                    <option value="pending">Pending</option>
+                                                    <option value="paid">Paid</option>
+                                                    <option value="failed">Failed</option>
+                                                    <option value="refunded">Refunded</option>
+                                                </select>
+                                                <ChevronDown className={`absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${
+                                                    order.paymentStatus === 'paid' ? 'text-emerald-700' :
+                                                    order.paymentStatus === 'refunded' ? 'text-blue-700' :
+                                                    'text-amber-700'
+                                                }`} />
+                                            </div>
                                         </td>
                                         <td className="px-6 py-6">
                                             <div className="relative w-max">
@@ -167,6 +194,49 @@ export default function AdminOrders() {
                                                 <ChevronDown className={`absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${status.color}`} />
                                             </div>
                                         </td>
+                                        <td className="px-6 py-6 font-medium">
+                                            <div className="relative w-max">
+                                                <div className="flex flex-col gap-2">
+                                                    <select 
+                                                        className={`text-xs border rounded p-1 outline-none focus:ring-1 ${
+                                                            order.orderStatus === 'delivered' && !order.deliveryAgent ? 'border-amber-500 bg-amber-50' : 'border-gray-200'
+                                                        }`}
+                                                        value={order.deliveryAgent?._id || order.deliveryAgent || ''}
+                                                        onChange={(e) => updateOrderStatusAdmin(order._id, null, null, e.target.value)}
+                                                    >
+                                                        <option value="">Unassigned</option>
+                                                        {agents.map(agent => (
+                                                            <option key={agent._id} value={agent._id}>{agent.name}</option>
+                                                        ))}
+                                                    </select>
+                                                    
+                                                    {order.orderStatus === 'delivered' && !order.deliveryAgent && (
+                                                        <div className="flex items-center gap-1 text-[8px] font-black text-amber-600 uppercase">
+                                                            <AlertCircle className="h-2 w-2" /> Needs Agent
+                                                        </div>
+                                                    )}
+
+                                                    {order.orderStatus === 'delivered' && 
+                                                     ['cod', 'Cash on Delivery'].includes(order.paymentMethod) && 
+                                                     order.deliveryAgent &&
+                                                     !order.isSettled && (
+                                                        <button 
+                                                            onClick={() => updateOrderStatusAdmin(order._id, null, null, undefined, undefined, true)}
+                                                            className="text-[9px] font-black uppercase tracking-widest py-1 bg-emerald-50 text-emerald-600 rounded border border-emerald-100 hover:bg-emerald-100 transition-colors"
+                                                        >
+                                                            Settle Cash (₹{order.collectedAmount || order.totalAmount})
+                                                        </button>
+                                                    )}
+                                                    {order.isSettled && (
+                                                        <span className="text-[9px] font-black uppercase text-emerald-500 text-center flex items-center justify-center gap-1">
+                                                            <CheckCircle className="h-2 w-2" /> Settled
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400" />
+                                            </div>
+                                        </td>
                                         <td className="px-6 py-6 text-right">
                                             <div className="flex justify-end gap-2">
                                                 <button 
@@ -175,15 +245,19 @@ export default function AdminOrders() {
                                                 >
                                                     <Eye className="h-5 w-5" />
                                                 </button>
-                                                {order.paymentStatus === 'paid' && order.orderStatus !== 'cancelled' && (
+                                                {order.paymentStatus === 'paid' && (
                                                     <button 
                                                         onClick={() => {
-                                                            if (window.confirm('Refund this order? This will also cancel the order.')) {
+                                                            if (window.confirm('Refund this order? The status will be updated to "cancelled" and payment to "refunded".')) {
                                                                 refundOrderAdmin(order._id)
                                                             }
                                                         }}
-                                                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
-                                                        title="Refund Order"
+                                                        className={`p-2 rounded-xl transition-all ${
+                                                            order.orderStatus === 'cancelled' 
+                                                            ? 'bg-rose-50 text-rose-600 animate-pulse border border-rose-100 shadow-sm' 
+                                                            : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
+                                                        }`}
+                                                        title={order.orderStatus === 'cancelled' ? "ACTION REQUIRED: Refund Paid Order" : "Refund Order"}
                                                     >
                                                         <RotateCcw className="h-5 w-5" />
                                                     </button>
@@ -218,6 +292,11 @@ export default function AdminOrders() {
                                     <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusConfig(selectedOrder.orderStatus).bg} ${getStatusConfig(selectedOrder.orderStatus).color} ${getStatusConfig(selectedOrder.orderStatus).border}`}>
                                         {selectedOrder.orderStatus}
                                     </span>
+                                    {selectedOrder.paymentStatus === 'paid' && selectedOrder.orderStatus === 'cancelled' && (
+                                        <div className="flex items-center gap-1 text-[8px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-100 animate-pulse w-max">
+                                            <AlertCircle className="h-2 w-2" /> Action: Refund
+                                        </div>
+                                    )}
                                 </h3>
                                 <p className="text-gray-500 font-medium text-sm mt-1">Placed on {new Date(selectedOrder.createdAt).toLocaleString()}</p>
                             </div>
@@ -324,11 +403,23 @@ export default function AdminOrders() {
                                         </div>
                                         <div className="flex justify-between items-center">
                                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</span>
-                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
-                                                selectedOrder.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'
-                                            }`}>
-                                                {selectedOrder.paymentStatus}
-                                            </span>
+                                            <div className="relative w-max">
+                                                <select
+                                                    value={selectedOrder.paymentStatus}
+                                                    onChange={(e) => updateOrderStatusAdmin(selectedOrder._id, null, e.target.value)}
+                                                    className={`appearance-none pl-3 pr-8 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest outline-none border transition-all cursor-pointer ${
+                                                        selectedOrder.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'
+                                                    }`}
+                                                >
+                                                    <option value="pending">Pending</option>
+                                                    <option value="paid">Paid</option>
+                                                    <option value="failed">Failed</option>
+                                                    <option value="refunded">Refunded</option>
+                                                </select>
+                                                <ChevronDown className={`absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${
+                                                    selectedOrder.paymentStatus === 'paid' ? 'text-emerald-700' : 'text-amber-700'
+                                                }`} />
+                                            </div>
                                         </div>
                                         <div className="flex flex-col gap-1">
                                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Transaction ID</span>

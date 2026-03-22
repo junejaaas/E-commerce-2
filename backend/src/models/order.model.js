@@ -37,14 +37,21 @@ const orderSchema = mongoose.Schema(
         },
         orderStatus: {
             type: String,
-            enum: ['pending', 'processing', 'confirmed', 'shipped', 'delivered', 'cancelled', 'returned'],
+            enum: ['pending', 'processing', 'confirmed', 'picked', 'shipped', 'delivered', 'cancelled', 'returned'],
             default: 'processing',
         },
         totalAmount: { type: Number, required: true },
+        collectedAmount: { type: Number },
+        deliveredAt: { type: Date },
+        isSettled: { type: Boolean, default: false },
         tax: { type: Number, default: 0 },
         shippingFee: { type: Number, default: 0 },
         subTotal: { type: Number, required: true },
         transactionId: { type: String },
+        deliveryAgent: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+        },
     },
     {
         timestamps: true,

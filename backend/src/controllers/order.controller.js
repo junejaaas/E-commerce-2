@@ -23,10 +23,13 @@ const createOrder = catchAsync(async (req, res) => {
 
     const { addressId, paymentMethod } = req.body;
 
+    const io = req.app.get('io');
+
     const order = await orderService.createOrder(
         req.user.id,
         addressId,
-        paymentMethod
+        paymentMethod,
+        io
     );
 
     res.status(201).send(order);
@@ -77,11 +80,15 @@ const getOrderAdmin = catchAsync(async (req, res) => {
 // Update order status
 const updateOrderStatus = catchAsync(async (req, res) => {
 
-    const { status } = req.body;
+    const { status, paymentStatus, deliveryAgent, collectedAmount, isSettled } = req.body;
 
     const order = await orderService.updateOrderStatus(
         req.params.orderId,
-        status
+        status,
+        paymentStatus,
+        deliveryAgent,
+        collectedAmount,
+        isSettled
     );
 
     res.status(200).json(order);

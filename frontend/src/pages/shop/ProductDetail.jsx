@@ -11,6 +11,7 @@ import { Input } from '../../components/common/Input'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import { useCartStore } from '../../store/cartStore'
 import API from '../../services/api'
+import { useAnalytics } from '../../hooks/useAnalytics'
 
 const reviewSchema = z.object({
     rating: z.number().min(1, 'Please select a rating').max(5),
@@ -30,6 +31,8 @@ const getImageUrl = (image) => {
 export default function ProductDetail() {
     const { id } = useParams()
     const { product, loading, fetchProductDetails, addReview } = useProductStore()
+    
+    useAnalytics('product', id)
     const { items, addToWishlist, removeFromWishlist } = useWishlistStore()
     const [reviews, setReviews] = useState([])
     

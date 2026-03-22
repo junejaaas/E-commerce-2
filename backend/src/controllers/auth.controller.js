@@ -2,8 +2,21 @@ const catchAsync = require('../utils/catchAsync');
 const authService = require('../services/auth.service');
 const tokenService = require('../services/token.service');
 
+const { createNotification } = require('./notification.controller');
+
 const register = catchAsync(async (req, res) => {
+    const io = req.app.get('io');
     const user = await authService.register(req.body);
+
+    // Trigger: New Signup
+    await createNotification(io, {
+        recipientType: 'admin',
+        type: 'NEW_SIGNUP',
+        title: 'New User Registered',
+        message: `A new user ${user.name} (${user.email}) has signed up.`,
+        metadata: { userId: user._id, name: user.name, email: user.email }
+    });
+
     const tokens = await tokenService.generateAuthTokens(user);
     res.status(201).json({ user, tokens });
 });

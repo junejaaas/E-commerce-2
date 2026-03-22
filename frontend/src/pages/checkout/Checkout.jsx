@@ -10,9 +10,12 @@ import toast from 'react-hot-toast'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import EmptyState from '../../components/common/EmptyState'
 import { useNavigate } from 'react-router-dom'
+import { useAnalytics } from '../../hooks/useAnalytics'
 
 export default function Checkout() {
     const navigate = useNavigate()
+    
+    useAnalytics('checkout')
     const { cart } = useCartStore()
     const { addresses, fetchAddresses, loading: addressLoading } = useAddressStore()
     const { 

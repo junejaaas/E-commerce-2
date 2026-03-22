@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['user', 'seller', 'admin', 'support'],
+        enum: ['user', 'seller', 'admin', 'support', 'delivery'],
         default: 'user',
     },
     password: {
@@ -60,6 +60,8 @@ const userSchema = new mongoose.Schema({
         default: true,
         select: false,
     },
+    totalEarnings: { type: Number, default: 0 },
+    totalDeliveries: { type: Number, default: 0 },
 }, {
     timestamps: true,
 });

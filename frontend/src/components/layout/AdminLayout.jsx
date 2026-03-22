@@ -1,7 +1,12 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
-import { LayoutDashboard, Package, ShoppingCart, MessageSquare, LogOut, Menu, BarChart2, User, Store, ChevronDown, Ticket, LayoutGrid } from 'lucide-react'
+import { useNotificationStore } from '../../store/notificationStore'
+import { 
+    LayoutDashboard, Package, ShoppingCart, MessageSquare, LogOut, Menu, 
+    BarChart2, User, Store, ChevronDown, Ticket, LayoutGrid, Users 
+} from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
+import NotificationDropdown from '../notifications/NotificationDropdown'
 
 export default function AdminLayout({ children }) {
     const { user, logout } = useAuthStore()
@@ -10,6 +15,15 @@ export default function AdminLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [showProfileMenu, setShowProfileMenu] = useState(false)
     const profileMenuRef = useRef(null)
+    const { fetchNotifications, initSocket, disconnectSocket } = useNotificationStore()
+
+    useEffect(() => {
+        if (user?._id) {
+            fetchNotifications()
+            initSocket(user._id)
+        }
+        return () => disconnectSocket()
+    }, [user?._id])
 
     const menuItems = [
         { title: 'Dashboard', path: '/admin', exact: true, icon: <BarChart2 className="h-5 w-5" /> },
@@ -18,6 +32,7 @@ export default function AdminLayout({ children }) {
         { title: 'Orders', path: '/admin/orders', icon: <ShoppingCart className="h-5 w-5" /> },
         { title: 'Support', path: '/admin/support', icon: <MessageSquare className="h-5 w-5" /> },
         { title: 'Coupons', path: '/admin/coupons', icon: <Ticket className="h-5 w-5" /> },
+        { title: 'Delivery Fleet', path: '/admin/agents', icon: <Users className="h-5 w-5" /> },
     ]
 
     const handleLogout = () => {
@@ -82,7 +97,11 @@ export default function AdminLayout({ children }) {
 
                     <div className="flex-1"></div>
 
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2 sm:space-x-4">
+                        <NotificationDropdown />
+                        
+                        <div className="h-6 w-px bg-gray-100 hidden sm:block"></div>
+
                         {/* Profile Dropdown */}
                         <div className="relative" ref={profileMenuRef}>
                             <button

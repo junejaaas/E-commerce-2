@@ -46,6 +46,17 @@ exports.createReturn = catchAsync(async (req, res) => {
         type
     });
 
+    // Trigger: Return Request
+    const io = req.app.get('io');
+    const { createNotification } = require('./notification.controller');
+    await createNotification(io, {
+        recipientType: 'admin',
+        type: 'RETURN_REQUEST',
+        title: 'New Return Request',
+        message: `A return request was created for Order #${orderId}. Reason: ${reason}`,
+        metadata: { returnId: newReturn._id, orderId, userId: req.user.id }
+    });
+
     res.status(201).json({
         status: "success",
         data: newReturn
